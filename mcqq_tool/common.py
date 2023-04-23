@@ -7,8 +7,7 @@ from nonebot.internal.permission import Permission
 from nonebot_plugin_guild_patch import GuildMessageEvent
 
 from .config import Config
-from .model import event_dict
-from .model.basemodel import BaseEvent, BaseChatEvent, BaseDeathEvent, BaseJoinEvent, BaseQuitEvent
+from .model import event_dict, BaseEvent, BaseChatEvent, BaseDeathEvent, BaseJoinEvent, BaseQuitEvent
 
 plugin_config: Config = Config.parse_obj(get_driver().config)
 

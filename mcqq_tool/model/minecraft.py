@@ -5,9 +5,9 @@ class MineCraftPlayer(BasePlayer):
     """原版 玩家信息"""
 
 
-class MineCraftPlayerChatEvent(BaseChatEvent):
+class MinecraftPlayerChatEvent(BaseChatEvent):
     """原版 玩家聊天事件"""
-    event_name = "MineCraftPlayerChatEvent"
+    event_name = "MinecraftPlayerChatEvent"
     player: MineCraftPlayer
 
 

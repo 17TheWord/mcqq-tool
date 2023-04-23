@@ -19,34 +19,29 @@ class BaseMessageEvent(BaseEvent):
     player: BasePlayer
 
 
-class BaseChatEvent(BaseEvent):
+class BaseChatEvent(BaseMessageEvent):
     """玩家聊天事件基类"""
-    post_type = "message"
     sub_type = "chat"
     message: str
-    player: BasePlayer
 
 
-class BaseDeathEvent(BaseEvent):
+class BaseDeathEvent(BaseMessageEvent):
     """玩家死亡事件基类"""
-    post_type = "message"
     sub_type = "death"
-    player: BasePlayer
     death_message: str
 
 
 class BaseNoticeEvent(BaseEvent):
     """通知事件基类"""
     post_type = "notice"
+    player: BasePlayer
 
 
 class BaseJoinEvent(BaseNoticeEvent):
     """玩家加入事件基类"""
     sub_type = "join"
-    player: BasePlayer
 
 
 class BaseQuitEvent(BaseNoticeEvent):
     """玩家退出事件基类"""
     sub_type = "quit"
-    player: BasePlayer
