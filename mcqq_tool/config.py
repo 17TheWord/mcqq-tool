@@ -41,6 +41,8 @@ class Server(BaseModel):
     guild_list: Optional[List[Guild]] = []
     # 是否开启 Rcon
     rcon_enable: Optional[bool] = False
+    # 该群Bot ID
+    self_id: Optional[int] = None
 
 
 class Config(BaseModel, extra=Extra.ignore):
