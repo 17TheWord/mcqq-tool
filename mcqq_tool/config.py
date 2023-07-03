@@ -1,5 +1,5 @@
-import aiomcrcon
-import websockets
+from aiomcrcon import Client as RconClient
+from nonebot.drivers.websockets import WebSocket
 from typing import Optional, List, Dict
 from pydantic import BaseModel, Extra, Field
 
@@ -7,17 +7,17 @@ from pydantic import BaseModel, Extra, Field
 class Client:
     """MC_QQ 客户端"""
     server_name: str
-    websocket: websockets.WebSocketServerProtocol
-    rcon: Optional[aiomcrcon.Client] = None
+    websocket: WebSocket
+    rcon: Optional[RconClient] = None
 
     def __init__(
             self, server_name: str,
-            websocket: websockets.WebSocketServerProtocol,
-            rcon: Optional[aiomcrcon.Client] = None
+            websocket: WebSocket,
+            rcon: Optional[RconClient] = None
     ):
         self.server_name: str = server_name
-        self.websocket: websockets.WebSocketServerProtocol = websocket
-        self.rcon: Optional[aiomcrcon.Client] = rcon
+        self.websocket: WebSocket = websocket
+        self.rcon: Optional[RconClient] = rcon
 
 
 CLIENTS: Dict[str, Client] = {}
@@ -47,10 +47,8 @@ class Server(BaseModel):
 
 class Config(BaseModel, extra=Extra.ignore):
     """配置"""
-    # 服务器地址
-    mc_qq_ws_ip: Optional[str] = "127.0.0.1"
-    # 服务器端口
-    mc_qq_ws_port: Optional[int] = 8765
+    # 路由地址
+    mc_qq_ws_url: Optional[str] = "/onebot/v11/mcqq"
     # 是否发送群聊名称
     mc_qq_send_group_name: Optional[bool] = False
     # 是否显示服务器名称

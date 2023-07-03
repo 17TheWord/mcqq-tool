@@ -32,7 +32,7 @@ GUILD_ADMIN: Permission = Permission(_guild_admin)
 """频道管理员权限"""
 
 
-async def msg_to_qq_process(event: BaseEvent) -> str:
+async def _msg_to_qq_process(event: BaseEvent) -> str:
     """处理来自MC的消息，并返回处理后的消息"""
     if isinstance(event, BaseChatEvent):
         return f"{event.player.nickname} 说：{event.message}"
@@ -46,7 +46,7 @@ async def msg_to_qq_process(event: BaseEvent) -> str:
         return "未知消息"
 
 
-async def send_msg_to_qq_common(
+async def _send_msg_to_qq_common(
         bot: Bot,
         message: str,
 ):
@@ -54,7 +54,7 @@ async def send_msg_to_qq_common(
     json_msg = json.loads(message)
     event = event_dict[json_msg["event_name"]].parse_obj(json_msg)
 
-    msg = await msg_to_qq_process(event)
+    msg = await _msg_to_qq_process(event)
     if plugin_config.mc_qq_display_server_name:
         msg = f"[{event.server_name}] {msg}"
     # 循环服务器列表并发送消息

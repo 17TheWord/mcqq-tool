@@ -1,13 +1,19 @@
 import json
-from typing import List, Union, Optional, Tuple
+import contextlib
+from typing import List, Union, Tuple
 
-import aiomcrcon
-import websockets
+from aiomcrcon import (
+    Client as RconClient,
+    ClientNotConnectedError,
+    RCONConnectionError,
+    IncorrectPasswordError
+)
 from nonebot import logger
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
+from nonebot.drivers.websockets import WebSocketClosed
 from nonebot_plugin_guild_patch import GuildMessageEvent
 
-from .common import get_member_nickname, send_msg_to_qq_common, plugin_config
+from .common import get_member_nickname, _send_msg_to_qq_common, plugin_config
 from .config import Client, CLIENTS
 
 
@@ -18,30 +24,28 @@ async def send_msg_to_mc(bot: Bot, event: Union[GroupMessageEvent, GuildMessageE
     :param event: 事件
     """
     # 处理来自QQ的消息
-    if client_list := await get_clients(event=event):
+    if client_list := await _get_clients(event=event):
         for client in client_list:
             if client:
                 # 先判断是否有Rcon进行发送
                 if client.rcon:
-                    rcon_text_msg, msgCmd = await msg_process_to_cmd(bot=bot, event=event)
+                    rcon_text_msg, msg_cmd = await _msg_process_to_cmd(bot=bot, event=event)
                     try:
-                        await client.rcon.send_cmd(msgCmd)
-                    except aiomcrcon.errors.ClientNotConnectedError as e:
+                        await client.rcon.send_cmd(msg_cmd)
+                        logger.success(f"[MC_QQ_Rcon]丨发送至 [server:{client.server_name}] 的消息 \"{rcon_text_msg}\"")
+                    except ClientNotConnectedError as e:
                         logger.error(f"[MC_QQ_Rcon]丨发送至 [Server:{client.server_name}] 的过程中出现了错误：{e}")
                         await remove_client(client.server_name)
-                    else:
-                        logger.success(f"[MC_QQ_Rcon]丨发送至 [server:{client.server_name}] 的消息 \"{rcon_text_msg}\"")
                 elif client.websocket:
-                    text_msg, msgJson = await msg_process_to_json(bot=bot, event=event)
+                    text_msg, msg_json = await _msg_process_to_json(bot=bot, event=event)
                     try:
-                        await client.websocket.send(msgJson)
-                    except websockets.WebSocketException as e:
+                        await client.websocket.send(msg_json)
+                        logger.success(f"[MC_QQ]丨发送至 [server:{client.server_name}] 的消息 \"{text_msg}\"")
+                    except WebSocketClosed as e:
                         logger.error(f"[MC_QQ]丨发送至 [Server:{client.server_name}] 的过程中出现了错误：{e}")
                         await remove_client(client.server_name)
-                    else:
-                        logger.success(f"[MC_QQ]丨发送至 [server:{client.server_name}] 的消息 \"{text_msg}\"")
                 else:
-                    logger.error(f"[MC_QQ]丨发送至 [Server:{client.server_name}] 的过程中出现了错误：该客户端没有连接")
+                    logger.error(f"[MC_QQ]丨发送至 [Server:{client.server_name}] 的过程中出现了错误：该服务器没有连接")
                     await remove_client(client.server_name)
 
 
@@ -53,7 +57,7 @@ async def send_cmd_to_mc(bot: Bot, event: Union[GroupMessageEvent, GuildMessageE
     :param cmd: 命令
     """
     # 处理来自QQ的消息
-    if client_list := await get_clients(event=event):
+    if client_list := await _get_clients(event=event):
         for client in client_list:
             if client:
                 # 先判断是否有Rcon进行发送
@@ -61,11 +65,10 @@ async def send_cmd_to_mc(bot: Bot, event: Union[GroupMessageEvent, GuildMessageE
                     try:
                         back_msg = await client.rcon.send_cmd(cmd)
                         await bot.send(event=event, message=f"服务器返回：{back_msg[0]}")
-                    except aiomcrcon.errors.ClientNotConnectedError as e:
+                        logger.success(f"[MC_QQ_Rcon]丨发送至 [server:{client.server_name}] 的消息 \"{cmd}\"")
+                    except ClientNotConnectedError as e:
                         logger.error(f"[MC_QQ_Rcon]丨发送至 [Server:{client.server_name}] 的过程中出现了错误：{e}")
                         await remove_client(client.server_name)
-                    else:
-                        logger.success(f"[MC_QQ_Rcon]丨发送至 [server:{client.server_name}] 的消息 \"{cmd}\"")
                 elif client.websocket:
                     await bot.send(event=event, message="该服务器不支持Rcon，无法执行该命令")
                 else:
@@ -73,7 +76,7 @@ async def send_cmd_to_mc(bot: Bot, event: Union[GroupMessageEvent, GuildMessageE
                     await remove_client(client.server_name)
 
 
-async def get_clients(event: Union[GroupMessageEvent, GuildMessageEvent]) -> List[Client]:
+async def _get_clients(event: Union[GroupMessageEvent, GuildMessageEvent]) -> List[Client]:
     """
     获取 服务器名、ws客户端, 返回client列表
     :param event: 事件
@@ -83,25 +86,12 @@ async def get_clients(event: Union[GroupMessageEvent, GuildMessageEvent]) -> Lis
     for per_server in plugin_config.mc_qq_server_list:
         if isinstance(event, GroupMessageEvent):
             if event.group_id in per_server.group_list:
-                res.append(get_client(per_server.server_name))
+                res.append(CLIENTS.get(per_server.server_name))
         if isinstance(event, GuildMessageEvent):
             for per_guild in per_server.guild_list:
                 if per_guild.guild_id == event.guild_id and per_guild.channel_id == event.channel_id:
-                    res.append(get_client(per_server.server_name))
+                    res.append(CLIENTS.get(per_server.server_name))
     return res
-
-
-def get_client(server_name: str) -> Optional[Client]:
-    """
-    获取客户端
-    :param server_name: 服务器名
-    :return: 客户端
-    """
-    try:
-        return CLIENTS[server_name]
-    except KeyError as e:
-        logger.error(f"[MC_QQ_Rcon]丨获取客户端时出现了错误，该客户端不在列表中：{e}")
-        return None
 
 
 async def remove_client(server_name: str):
@@ -109,15 +99,16 @@ async def remove_client(server_name: str):
     移除客户端
     :param server_name: 服务器名
     """
-    if client := get_client(server_name):
+    if client := CLIENTS.get(server_name):
         if client.websocket:
-            await client.websocket.close()
+            with contextlib.suppress(Exception):
+                await client.websocket.close()
         if client.rcon:
             await client.rcon.close()
         del CLIENTS[server_name]
 
 
-async def rcon_connect(rcon_client: aiomcrcon.Client, server_name: str):
+async def rcon_connect(rcon_client: RconClient, server_name: str):
     """
     连接 Rcon
     :param rcon_client: Rcon 客户端
@@ -125,12 +116,11 @@ async def rcon_connect(rcon_client: aiomcrcon.Client, server_name: str):
     """
     try:
         await rcon_client.connect()
-    except aiomcrcon.RCONConnectionError as e:
-        logger.error(f"[MC_QQ]丨[Server:{server_name}] 的Rcon连接失败：{str(e)}")
-    except aiomcrcon.IncorrectPasswordError as e:
-        logger.error(f"[MC_QQ]丨[Server:{server_name}] 的Rcon密码错误：{str(e)}")
-    else:
         logger.success(f"[MC_QQ]丨[Server:{server_name}] 的Rcon连接成功")
+    except RCONConnectionError as e:
+        logger.error(f"[MC_QQ]丨[Server:{server_name}] 的Rcon连接失败：{str(e)}")
+    except IncorrectPasswordError as e:
+        logger.error(f"[MC_QQ]丨[Server:{server_name}] 的Rcon密码错误：{str(e)}")
 
 
 async def send_msg_to_qq(
@@ -142,13 +132,13 @@ async def send_msg_to_qq(
     :param bot: Bot
     :param message: 消息
     """
-    await send_msg_to_qq_common(
+    await _send_msg_to_qq_common(
         bot=bot,
         message=message
     )
 
 
-async def msg_process_to_json(bot: Bot, event: Union[GroupMessageEvent, GuildMessageEvent]) -> Tuple[str, str]:
+async def _msg_process_to_json(bot: Bot, event: Union[GroupMessageEvent, GuildMessageEvent]) -> Tuple[str, str]:
     """
     消息处理为 JSON
     :param bot: Bot
@@ -162,7 +152,7 @@ async def msg_process_to_json(bot: Bot, event: Union[GroupMessageEvent, GuildMes
     text_msg = member_nickname + "说："
 
     # 初始化消息字典
-    messageList = []
+    message_list = []
 
     # 发送群聊名称
     if plugin_config.mc_qq_send_group_name:
@@ -176,10 +166,10 @@ async def msg_process_to_json(bot: Bot, event: Union[GroupMessageEvent, GuildMes
                     channel_name = per_channel['channel_name']
                     group_name['msgData'] = f"{guild_name}丨{channel_name}"
                     break
-        messageList.append({"msgType": "group_name", "msgData": group_name})
+        message_list.append({"msgType": "group_name", "msgData": group_name})
 
     # 将群成员昵称装入消息列表
-    messageList.append({"msgType": "senderName", "msgData": member_nickname})
+    message_list.append({"msgType": "senderName", "msgData": member_nickname})
 
     for msg in event.message:
         per_msg = {'msgType': msg.type}
@@ -228,12 +218,12 @@ async def msg_process_to_json(bot: Bot, event: Union[GroupMessageEvent, GuildMes
         # 装入消息数据
         per_msg['msgData'] = msgData
         # 放入消息列表
-        messageList.append(per_msg)
+        message_list.append(per_msg)
 
-    return text_msg, str({"message": messageList})
+    return text_msg, str({"message": message_list})
 
 
-async def msg_process_to_cmd(bot: Bot, event: Union[GroupMessageEvent, GuildMessageEvent]) -> Tuple[str, str]:
+async def _msg_process_to_cmd(bot: Bot, event: Union[GroupMessageEvent, GuildMessageEvent]) -> Tuple[str, str]:
     """
     消息处理为 命令
     :param bot: Bot
@@ -259,7 +249,8 @@ async def msg_process_to_cmd(bot: Bot, event: Union[GroupMessageEvent, GuildMess
             guild_name = (await bot.get_guild_meta_by_guest(guild_id=event.guild_id))['guild_name']
             for per_channel in (await bot.get_guild_channel_list(guild_id=event.guild_id, no_cache=True)):
                 if str(event.channel_id) == per_channel['channel_id']:
-                    message_list.append({"text": guild_name + "丨" + per_channel['channel_name'] + " ", "color": "aqua"})
+                    message_list.append(
+                        {"text": guild_name + "丨" + per_channel['channel_name'] + " ", "color": "aqua"})
                     break
     message_list.append({"text": member_nickname, "color": "aqua"})
     message_list.append({"text": " 说：", "color": "yellow"})
@@ -288,7 +279,8 @@ async def msg_process_to_cmd(bot: Bot, event: Union[GroupMessageEvent, GuildMess
         elif msg.type == "video":
             msg_dict = {"text": "[视频] ", "color": "light_purple",
                         "clickEvent": {"action": "open_url", "value": msg.data['url']},
-                        "hoverEvent": {"action": "show_text", "contents": [{"text": "查看视频", "color": "dark_purple"}]}
+                        "hoverEvent": {"action": "show_text",
+                                       "contents": [{"text": "查看视频", "color": "dark_purple"}]}
                         }
             text_msg += '[视频]'
         # @
