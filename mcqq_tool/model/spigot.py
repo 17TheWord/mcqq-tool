@@ -1,11 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
 from .basemodel import BasePlayer, BaseChatEvent, BaseDeathEvent, BaseJoinEvent, BaseQuitEvent
-
-
-class Address(BaseModel):
-    address: str
-    port: int
 
 
 class SpigotPlayer(BasePlayer):
@@ -14,7 +8,7 @@ class SpigotPlayer(BasePlayer):
     display_name: str
     player_list_name: str
     is_health_scaled: bool
-    address: Address
+    address: Optional[str] = None
     is_sprinting: bool
     walk_speed: float
     fly_speed: float
