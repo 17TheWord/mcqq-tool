@@ -236,7 +236,7 @@ async def _msg_process_to_cmd(bot: Bot, event: Union[GroupMessageEvent, GuildMes
     # 初始化日志消息
     text_msg = member_nickname + " 说："
 
-    command_msg = "tellraw @p "
+    command_msg = "tellraw @a "
 
     message_list = [
         {"text": "[MC_QQ] ", "color": "yellow"},
