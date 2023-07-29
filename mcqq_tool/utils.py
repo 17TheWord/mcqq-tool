@@ -70,7 +70,8 @@ async def send_cmd_to_mc(bot: Bot, event: Union[GroupMessageEvent, GuildMessageE
                         logger.error(f"[MC_QQ_Rcon]丨发送至 [Server:{client.server_name}] 的过程中出现了错误：{e}")
                         await remove_client(client.server_name)
                 elif client.websocket:
-                    await bot.send(event=event, message="该服务器不支持Rcon，无法执行该命令")
+                    cmd_list = {"message": [{"msgType": "command", "msgData": cmd}]}
+                    await client.websocket.send_text(str(cmd_list))
                 else:
                     logger.error(f"[MC_QQ]丨发送至 [Server:{client.server_name}] 的过程中出现了错误：该客户端没有连接")
                     await remove_client(client.server_name)
