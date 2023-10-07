@@ -1,35 +1,43 @@
-from .basemodel import BasePlayer, BaseChatEvent, BaseDeathEvent, BaseJoinEvent, BaseQuitEvent
+from typing import Optional, Literal
+
+from .base import (
+    BasePlayer,
+    BaseChatEvent,
+    BaseDeathEvent,
+    BaseJoinEvent,
+    BaseQuitEvent
+)
 
 
-class ForgePlayer(BasePlayer):
+class Player(BasePlayer):
     """玩家信息"""
-    nickname: str
-    uuid: str
-    ipAddress: str
-    level: str
+    nickname: Optional[str] = None
+    uuid: Optional[str] = None
+    ipAddress: Optional[str] = None
+    level: Optional[str] = None
     """地图？"""
-    speed: float
+    speed: Optional[float] = None
 
 
 class ForgeServerChatEvent(BaseChatEvent):
     """Forge API ServerChatEvent"""
-    event_name = "ServerChatEvent"
-    player: ForgePlayer
+    event_name: Literal["ForgeServerChatEvent"]
+    player: Player
 
 
 class ForgePlayerLoggedInEvent(BaseJoinEvent):
     """Forge API PlayerLoggedInEvent"""
-    event_name = "ForgePlayerLoggedInEvent"
-    player: ForgePlayer
+    event_name: Literal["ForgePlayerLoggedInEvent"]
+    player: Player
 
 
 class ForgePlayerLoggedOutEvent(BaseQuitEvent):
     """Forge API PlayerLoggedOutEvent"""
-    event_name = "ForgePlayerLoggedOutEvent"
-    player: ForgePlayer
+    event_name: Literal["ForgePlayerLoggedOutEvent"]
+    player: Player
 
 
 class ForgePlayerRespawnEvent(BaseDeathEvent):
     """Forge API ForgePlayerRespawnEvent"""
-    event_name = "ForgePlayerRespawnEvent"
-    player: ForgePlayer
+    event_name: Literal["ForgePlayerRespawnEvent"]
+    player: Player

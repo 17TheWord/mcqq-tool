@@ -37,11 +37,13 @@ async def _msg_to_qq_process(event: BaseEvent) -> str:
     if isinstance(event, BaseChatEvent):
         return f"{event.player.nickname} 说：{event.message}"
     elif isinstance(event, BaseDeathEvent):
-        return f"{event.player.nickname} {event.death_message}"
+        return f"{event.player.nickname} {event.message}"
     elif isinstance(event, BaseJoinEvent):
         return f"{event.player.nickname} 加入了游戏"
     elif isinstance(event, BaseQuitEvent):
         return f"{event.player.nickname} 离开了游戏"
+    # elif isinstance(event, BasePlayerCommandEvent):
+    #     return f"{event.player.nickname} 执行了命令：{event.message}"
     else:
         return "未知消息"
 

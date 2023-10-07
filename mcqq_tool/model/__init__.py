@@ -1,7 +1,35 @@
-from .basemodel import BaseEvent, BaseChatEvent, BaseDeathEvent, BaseJoinEvent, BaseQuitEvent
-from .forge import ForgePlayerLoggedInEvent, ForgePlayerLoggedOutEvent, ForgeServerChatEvent, ForgePlayerRespawnEvent
-from .minecraft import MinecraftPlayerChatEvent, MinecraftPlayerJoinEvent, MinecraftPlayerQuitEvent
-from .spigot import AsyncPlayerChatEvent, PlayerDeathEvent, PlayerJoinEvent, PlayerQuitEvent
+from .base import (
+    BaseEvent,
+    BasePlayer,
+    BaseMessageEvent,
+    BaseChatEvent,
+    BasePlayerCommandEvent,
+    BaseNoticeEvent,
+    BaseDeathEvent,
+    BaseJoinEvent,
+    BaseQuitEvent
+)
+from .forge import (
+    Player as ForgePlayer,
+    ForgePlayerLoggedInEvent,
+    ForgePlayerLoggedOutEvent,
+    ForgeServerChatEvent,
+    ForgePlayerRespawnEvent
+)
+from .minecraft import (
+    Player as MinecraftPlayer,
+    MinecraftPlayerChatEvent,
+    MinecraftPlayerJoinEvent,
+    MinecraftPlayerQuitEvent
+)
+from .spigot import (
+    Player as SpigotPlayer,
+    AsyncPlayerChatEvent,
+    PlayerDeathEvent,
+    PlayerJoinEvent,
+    PlayerQuitEvent,
+    PlayerCommandPreprocessEvent
+)
 
 event_dict = {
     # 原版
@@ -13,6 +41,7 @@ event_dict = {
     "PlayerDeathEvent": PlayerDeathEvent,
     "PlayerJoinEvent": PlayerJoinEvent,
     "PlayerQuitEvent": PlayerQuitEvent,
+    "PlayerCommandPreprocessEvent": PlayerCommandPreprocessEvent,
     # Forge
     "ForgeServerChatEvent": ForgeServerChatEvent,
     "ForgePlayerLoggedInEvent": ForgePlayerLoggedInEvent,
