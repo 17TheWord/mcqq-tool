@@ -1,6 +1,10 @@
-from nonebot.adapters.onebot.v11 import Bot as OneBot
-from nonebot.adapters.qq import MessageCreateEvent
+from typing import Union
+
+from nonebot.adapters.onebot.v11 import Bot as OneBot, GroupMessageEvent, GROUP_ADMIN, GROUP_OWNER
+from nonebot.adapters.qq import MessageCreateEvent, Bot as QQBot
+from nonebot.internal.matcher import Matcher
 from nonebot.internal.permission import Permission
+from nonebot.permission import SUPERUSER
 from nonebot_plugin_guild_patch import GuildMessageEvent
 
 from .config import plugin_config
@@ -33,3 +37,20 @@ ONEBOT_GUILD_ADMIN: Permission = Permission(_onebot_guild_admin)
 """OneBot适配器 频道管理员权限"""
 QQ_GUILD_ADMIN: Permission = Permission(_qq_guild_admin)
 """QQ适配器 频道管理员权限"""
+
+
+async def permission_check(
+        matcher: Matcher,
+        bot: Union[OneBot, QQBot],
+        event: Union[GroupMessageEvent, GuildMessageEvent, MessageCreateEvent]
+):
+    if (
+            (isinstance(event, GroupMessageEvent) and isinstance(bot, OneBot) and not await (
+                    GROUP_ADMIN | GROUP_OWNER | SUPERUSER)(bot, event)) or
+            (isinstance(event, GuildMessageEvent) and isinstance(bot, OneBot) and not await (
+                    ONEBOT_GUILD_ADMIN | SUPERUSER)(bot, event)) or
+            (isinstance(event, MessageCreateEvent) and isinstance(bot, QQBot) and not await (
+                    QQ_GUILD_ADMIN | SUPERUSER)(bot, event))
+    ):
+        await matcher.finish("你没有权限使用此命令")
+
