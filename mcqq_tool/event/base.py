@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class BaseEvent(BaseModel):
     """事件基类"""
+    timestamp: int
     post_type: str
     event_name: str
     server_name: str
