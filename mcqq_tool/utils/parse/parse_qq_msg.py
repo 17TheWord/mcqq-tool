@@ -75,7 +75,9 @@ async def parse_onebot_msg_to_basemodel(
     :return: WebSocketSendBody
     """
     websocket_send_body = WebSocketSendBody()
-    websocket_send_body.message = []
+    websocket_send_body.api = "broadcast"
+
+    websocket_message_body = WebSocketMessageBody()
 
     # 发送群聊名称
     if plugin_config.mc_qq_send_group_name:
@@ -90,19 +92,19 @@ async def parse_onebot_msg_to_basemodel(
                     channel_name = per_channel['channel_name']
                     group_name.msg_text = f"{guild_name}丨{channel_name}"
                     break
-        websocket_send_body.message.append(group_name)
+        websocket_message_body.message_list.append(group_name)
 
     member_nickname = await _get_onebot_member_nickname(bot, event, event.user_id)
 
     sender_name = MessageItem()
     sender_name.msg_text = member_nickname + " "
     sender_name.color = TextColor.WHITE
-    websocket_send_body.message.append(sender_name)
+    websocket_message_body.message_list.append(sender_name)
 
     sender_say = MessageItem()
     sender_say.msg_text = "说："
     sender_say.color = TextColor.GOLD
-    websocket_send_body.message.append(sender_say)
+    websocket_message_body.message_list.append(sender_say)
 
     for msg in event.message:
         per_msg = MessageItem()
@@ -155,7 +157,9 @@ async def parse_onebot_msg_to_basemodel(
         else:
             per_msg.msg_text = f"[{msg.type}]"
             per_msg.color = TextColor.WHITE
-        websocket_send_body.message.append(per_msg)
+        websocket_message_body.message_list.append(per_msg)
+
+    websocket_send_body.data = websocket_message_body
     return websocket_send_body
 
 
@@ -170,7 +174,9 @@ async def parse_qq_msg_to_basemodel(
     :return: WebSocketSendBody
     """
     websocket_send_body = WebSocketSendBody()
-    websocket_send_body.message = []
+    websocket_send_body.api = "broadcast"
+
+    websocket_message_body = WebSocketMessageBody()
 
     # 发送群聊名称
     if plugin_config.mc_qq_send_group_name:
@@ -179,19 +185,19 @@ async def parse_qq_msg_to_basemodel(
         guild: Guild = await bot.get_guild(guild_id=event.guild_id)
         channel: Channel = await bot.get_channel(channel_id=event.channel_id)
         group_name.msg_text = f"{guild.name}丨{channel.name}"
-        websocket_send_body.message.append(group_name)
+        websocket_message_body.message_list.append(group_name)
 
     member_nickname = await get_qq_member_nickname(bot, event, event.author.id)
 
     sender_name = MessageItem()
     sender_name.msg_text = member_nickname + " "
     sender_name.color = TextColor.WHITE
-    websocket_send_body.message.append(sender_name)
+    websocket_message_body.message_list.append(sender_name)
 
     sender_say = MessageItem()
     sender_say.msg_text = "说："
     sender_say.color = TextColor.GOLD
-    websocket_send_body.message.append(sender_say)
+    websocket_message_body.message_list.append(sender_say)
 
     for msg in event.get_message():
         per_msg = MessageItem()
@@ -231,7 +237,9 @@ async def parse_qq_msg_to_basemodel(
         else:
             per_msg.msg_text = f"[{msg.type}]"
             per_msg.color = TextColor.WHITE
-        websocket_send_body.message.append(per_msg)
+        websocket_message_body.message_list.append(per_msg)
+
+    websocket_send_body.data = websocket_message_body
     return websocket_send_body
 
 
@@ -406,3 +414,25 @@ async def parse_qq_rcon_msg_to_basemodel(
             text_component.color = TextColor.WHITE
         rcon_send_body.message.append(text_component)
     return rcon_send_body
+
+
+def parse_send_title_to_basemodel(
+        args: str
+) -> WebSocketSendBody:
+    # 将args以\n分割
+    args_list = args.split("\n")
+
+    websocket_send_body = WebSocketSendBody()
+
+    websocket_send_body.api = "send_title"
+
+    websocket_send_title_item = WebSocketSendTitleItem()
+    websocket_send_title_item.title = args_list[0]
+    websocket_send_title_item.subtitle = args_list[1] if len(args_list) > 1 else None
+
+    websocket_send_title_body = WebSocketSendTitleBody()
+    websocket_send_title_body.send_title = websocket_send_title_item
+
+    websocket_send_body.data = websocket_send_title_body
+
+    return websocket_send_body
