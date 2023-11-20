@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from pydantic import BaseModel
 
@@ -50,13 +50,6 @@ class MessageItem(BaseModel):
     action_event: Optional[ActionEvent] = None
 
 
-class WebSocketSendBody(BaseModel):
-    """
-    websocket 发送消息的body
-    """
-    message: List[MessageItem] = []
-
-
 class ChatImageModel(BaseModel):
     """
     ChatImage Mod 图片
@@ -66,6 +59,39 @@ class ChatImageModel(BaseModel):
 
     def __str__(self):
         return f"[[CICode,url={self.url}]]"
+
+
+class WebSocketMessageBody(BaseModel):
+    """
+    websocket 发送消息的body
+    """
+    message_list: List[MessageItem] = []
+
+
+class WebSocketSendTitleItem(BaseModel):
+    """
+    websocket SendTitle 消息体
+    """
+    title: Optional[str] = ""
+    subtitle: Optional[str] = ""
+    fadein: Optional[int] = 10
+    stay: Optional[int] = 70
+    fadeout: Optional[int] = 20
+
+
+class WebSocketSendTitleBody(BaseModel):
+    """
+    websocket 发送消息的body
+    """
+    send_title: Optional[WebSocketSendTitleItem] = None
+
+
+class WebSocketSendBody(BaseModel):
+    """
+    websocket 发送消息的body
+    """
+    api: Optional[str] = None
+    data: Optional[Any] = None
 
 
 """
