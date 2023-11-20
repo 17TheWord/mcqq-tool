@@ -18,7 +18,8 @@ from .parse import (
     parse_onebot_rcon_msg_to_basemodel,
     parse_onebot_msg_to_basemodel,
     parse_qq_rcon_msg_to_basemodel,
-    parse_send_title_to_basemodel
+    parse_send_title_to_basemodel,
+    parse_actionbar_to_basemodel
 )
 from .send import (
     send_common_to_mc_by_ws,
@@ -62,6 +63,19 @@ async def send_msg_to_mc(
     return None
 
 
+async def send_actionbar_to_mc(
+        event: Union[GroupMessageEvent, GuildMessageEvent, MessageCreateEvent],
+        arg: str
+):
+    """
+    发送 Actionbar 到 MC 服务器
+    :param event:
+    :param arg:
+    :return:
+    """
+    return await send_screen_overlay_to_mc(event=event, arg=arg, screen_type="actionbar")
+
+
 async def send_send_title_to_mc(
         event: Union[GroupMessageEvent, GuildMessageEvent, MessageCreateEvent],
         arg: str
@@ -72,21 +86,65 @@ async def send_send_title_to_mc(
     :param arg:  参数
     :return: None
     """
+    return await send_screen_overlay_to_mc(event=event, arg=arg, screen_type="title")
+
+
+async def send_screen_overlay_to_mc(
+        event: Union[GroupMessageEvent, GuildMessageEvent, MessageCreateEvent],
+        arg: str,
+        screen_type: str
+):
+    """
+    发送 SendTitle 到 MC 服务器
+    :param screen_type:
+    :param event:  事件
+    :param arg:  参数
+    :return: None
+    """
     if client_list := await get_clients(event=event):
+        result = ""
         for client in client_list:
             if client:
                 server = plugin_config.mc_qq_server_dict.get(client.server_name)
 
+                result += f"{client.server_name}-"
+
                 # 先判断是否有Rcon进行发送
-                if client.rcon and server.rcon_msg:
-                    send_title = parse_send_title_to_basemodel(arg).json(ensure_ascii=False)
-                    if len(send_title) > 256:
-                        return "消息过长，无法发送"
-                    # await send_common_cmd_to_mc_by_rcon(client=client, cmd=send_title)
+                if client.rcon and server.rcon_msg and server.rcon_cmd:
+                    if screen_type == "actionbar":
+                        actionbar_result = await send_common_cmd_to_mc_by_rcon(
+                            client=client,
+                            cmd=f'title @a actionbar "{arg}"'
+                        )
+                        result += actionbar_result if actionbar_result else "发送失败"
+                    elif screen_type == "title":
+                        args = arg.split("\n")
+                        subtitle_result = title_result = None
+                        if len(args) > 1 and args[1] and len(args[1]) + 20 < 256:
+                            subtitle_result = await send_common_cmd_to_mc_by_rcon(
+                                client=client,
+                                cmd=f'title @a subtitle "{args[1]}"'
+                            )
+                        if args[0] and len(args[0]) + 20 < 256:
+                            title_result = await send_common_cmd_to_mc_by_rcon(
+                                client=client,
+                                cmd=f'title @a title "{args[0]}"'
+                            )
+                        if subtitle_result or title_result:
+                            result += "发送成功 "
+                        else:
+                            result += "发送失败 "
                 else:
-                    send_title = parse_send_title_to_basemodel(arg).json(ensure_ascii=False)
-                    await send_common_to_mc_by_ws(client=client, message=send_title)
+                    if screen_type == "actionbar":
+                        actionbar = parse_actionbar_to_basemodel(arg).json(ensure_ascii=False)
+                        await send_common_to_mc_by_ws(client=client, message=actionbar)
+                    elif screen_type == "title":
+                        send_title = parse_send_title_to_basemodel(arg).json(ensure_ascii=False)
+                        await send_common_to_mc_by_ws(client=client, message=send_title)
+                    result += "发送成功 "
                 logger.debug(f"[MC_QQ]丨发送至 [Server:{client.server_name}] 的消息发成功")
+            result += "\n"
+        return result
     return None
 
 

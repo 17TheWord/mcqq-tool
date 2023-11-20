@@ -86,6 +86,13 @@ class WebSocketSendTitleBody(BaseModel):
     send_title: Optional[WebSocketSendTitleItem] = None
 
 
+class WebSocketSendActionBarBody(BaseModel):
+    """
+    websocket 发送消息的body
+    """
+    text: Optional[str] = None
+
+
 class WebSocketSendBody(BaseModel):
     """
     websocket 发送消息的body

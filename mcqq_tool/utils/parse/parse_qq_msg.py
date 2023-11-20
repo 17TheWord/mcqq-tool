@@ -436,3 +436,19 @@ def parse_send_title_to_basemodel(
     websocket_send_body.data = websocket_send_title_body
 
     return websocket_send_body
+
+
+def parse_actionbar_to_basemodel(
+        args: str
+) -> WebSocketSendBody:
+    """
+    将args解析为WebSocketSendBody
+    :param args: 传入的参数
+    :return: WebSocketSendBody
+    """
+    websocket_send_body = WebSocketSendBody()
+    websocket_send_body.api = "actionbar"
+    websocket_send_actionbar_body = WebSocketSendActionBarBody()
+    websocket_send_actionbar_body.text = args
+    websocket_send_body.data = websocket_send_actionbar_body
+    return websocket_send_body
