@@ -17,7 +17,8 @@ from .parse import (
     parse_qq_msg_to_basemodel,
     parse_onebot_rcon_msg_to_basemodel,
     parse_onebot_msg_to_basemodel,
-    parse_qq_rcon_msg_to_basemodel
+    parse_qq_rcon_msg_to_basemodel,
+    parse_send_title_to_basemodel
 )
 from .send import (
     send_common_to_mc_by_ws,
@@ -46,12 +47,10 @@ async def send_msg_to_mc(
                 if client.rcon and server.rcon_msg:
                     if isinstance(event, MessageCreateEvent):
                         message = await parse_qq_rcon_msg_to_basemodel(event=event, bot=bot)
-                        if len(message.get_tellraw()) > 256:
-                            return "消息过长，无法发送"
                     else:
                         message = await parse_onebot_rcon_msg_to_basemodel(event=event, bot=bot)
-                        if len(message.get_tellraw()) > 256:
-                            return "消息过长，无法发送"
+                    if len(message.get_tellraw()) > 256:
+                        return "消息过长，无法发送"
                     await send_common_cmd_to_mc_by_rcon(client=client, cmd=message.get_tellraw())
                 else:
                     if isinstance(event, MessageCreateEvent):
@@ -59,6 +58,35 @@ async def send_msg_to_mc(
                     else:
                         message = (await parse_onebot_msg_to_basemodel(event=event, bot=bot)).json(ensure_ascii=False)
                     await send_common_to_mc_by_ws(client=client, message=message)
+                logger.debug(f"[MC_QQ]丨发送至 [Server:{client.server_name}] 的消息发成功")
+    return None
+
+
+async def send_send_title_to_mc(
+        event: Union[GroupMessageEvent, GuildMessageEvent, MessageCreateEvent],
+        arg: str
+):
+    """
+    发送 SendTitle 到 MC 服务器
+    :param event:  事件
+    :param arg:  参数
+    :return: None
+    """
+    if client_list := await get_clients(event=event):
+        for client in client_list:
+            if client:
+                server = plugin_config.mc_qq_server_dict.get(client.server_name)
+
+                # 先判断是否有Rcon进行发送
+                if client.rcon and server.rcon_msg:
+                    send_title = parse_send_title_to_basemodel(arg).json(ensure_ascii=False)
+                    if len(send_title) > 256:
+                        return "消息过长，无法发送"
+                    # await send_common_cmd_to_mc_by_rcon(client=client, cmd=send_title)
+                else:
+                    send_title = parse_send_title_to_basemodel(arg).json(ensure_ascii=False)
+                    await send_common_to_mc_by_ws(client=client, message=send_title)
+                logger.debug(f"[MC_QQ]丨发送至 [Server:{client.server_name}] 的消息发成功")
     return None
 
 
