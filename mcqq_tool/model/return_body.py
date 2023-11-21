@@ -6,23 +6,79 @@ from __future__ import annotations
 
 import json
 from enum import Enum
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Text
 
 from pydantic import BaseModel
 
 
-class ActionEvent(BaseModel):
+class ClickAction(Enum):
+    """
+    点击事件枚举
+    """
+
+    OPEN_URL = "open_url"
+    OPEN_FILE = "open_file"
+    RUN_COMMAND = "run_command"
+    SUGGEST_COMMAND = "suggest_command"
+    CHANGE_PAGE = "change_page"  # 仅用于书翻页
+    COPY_TO_CLIPBOARD = "copy_to_clipboard"
+
+
+class ClickEvent(BaseModel):
     """
     点击事件
     """
-    click_event_url: Optional[str] = None
-    hover_event_text: Optional[str] = None
+
+    action: Optional[ClickAction] = None
+    value: Optional[str] = None
+
+
+class HoverAction(Enum):
+    """
+    悬停事件枚举
+    """
+
+    SHOW_TEXT = "show_text"
+    SHOW_ITEM = "show_item"
+    SHOW_ENTITY = "show_entity"
+
+
+class HoverItem(BaseModel):
+    """
+    悬停事件中的物品
+    """
+
+    id: Optional[str] = None
+    count: Optional[int] = None
+    tag: Optional[str] = None
+
+
+class HoverEntity(BaseModel):
+    """
+    悬停事件中的实体
+    """
+
+    type: Optional[str] = None
+    id: Optional[str] = None
+    name: Optional[str] = None
+
+
+class HoverEvent(BaseModel):
+    """
+    悬停事件
+    """
+
+    action: Optional[HoverAction] = None
+    base_component_list: Optional[List[BaseComponent]] = None
+    item: Optional[HoverItem] = None
+    entity: Optional[HoverEntity] = None
 
 
 class TextColor(Enum):
     """
     颜色枚举
     """
+
     BLACK = "black"
     DARK_BLUE = "dark_blue"
     DARK_GREEN = "dark_green"
@@ -41,37 +97,56 @@ class TextColor(Enum):
     WHITE = "white"
 
 
-class MessageItem(BaseModel):
+class BaseComponent(BaseModel):
     """
-    消息体
+    BaseComponent
     """
-    msg_text: Optional[str] = None
+
+    text: Optional[str] = None
     color: Optional[TextColor] = None
-    action_event: Optional[ActionEvent] = None
+    font: Optional[str] = None
+    bold: Optional[bool] = False
+    italic: Optional[bool] = False
+    underlined: Optional[bool] = False
+    strikethrough: Optional[bool] = False
+    obfuscated: Optional[bool] = False
+    insertion: Optional[str] = None
 
 
-class ChatImageModel(BaseModel):
+class TextComponent(BaseComponent):
+    """
+    TextComponent
+    """
+
+    click_event: Optional[ClickEvent] = None
+    hover_event: Optional[HoverEvent] = None
+
+
+class ChatImageMod(BaseModel):
     """
     ChatImage Mod 图片
     """
+
     url: Optional[str] = None
-    name: Optional[str] = None
+    name: Optional[str] = "[图片]"
 
     def __str__(self):
-        return f"[[CICode,url={self.url}]]"
+        return f"[[CICode,url={self.url},name={self.name}]]"
 
 
-class WebSocketMessageBody(BaseModel):
+class MessageList(BaseModel):
     """
-    websocket 发送消息的body
+    websocket 发送的消息列表
     """
-    message_list: List[MessageItem] = []
+
+    message_list: Optional[List[TextComponent]] = []
 
 
-class WebSocketSendTitleItem(BaseModel):
+class SendTitleItem(BaseModel):
     """
-    websocket SendTitle 消息体
+    SendTitle 消息体
     """
+
     title: Optional[str] = ""
     subtitle: Optional[str] = ""
     fadein: Optional[int] = 10
@@ -79,24 +154,33 @@ class WebSocketSendTitleItem(BaseModel):
     fadeout: Optional[int] = 20
 
 
-class WebSocketSendTitleBody(BaseModel):
+class SendTitleBody(BaseModel):
     """
-    websocket 发送消息的body
+    SendTitle
     """
-    send_title: Optional[WebSocketSendTitleItem] = None
+
+    send_title: Optional[SendTitleItem] = None
 
 
-class WebSocketSendActionBarBody(BaseModel):
+class ActionBarComponent(BaseComponent):
     """
-    websocket 发送消息的body
+    ActionBarComponent
     """
-    text: Optional[str] = None
+
+
+class SendActionBarBody(BaseModel):
+    """
+    ActionBar 消息体
+    """
+
+    message_list: Optional[List[ActionBarComponent]] = None
 
 
 class WebSocketSendBody(BaseModel):
     """
     websocket 发送消息的body
     """
+
     api: Optional[str] = None
     data: Optional[Any] = None
 
@@ -106,31 +190,11 @@ Rcon
 """
 
 
-class RconClickEventEnum(Enum):
-    """
-    点击事件枚举
-    """
-    OPEN_URL = "open_url"
-    OPEN_FILE = "open_file"
-    RUN_COMMAND = "run_command"
-    SUGGEST_COMMAND = "suggest_command"
-    CHANGE_PAGE = "change_page"  # 仅用于书翻页
-    COPY_TO_CLIPBOARD = "copy_to_clipboard"
-
-
-class RconHoverEventEnum(Enum):
-    """
-    悬停事件枚举
-    """
-    SHOW_TEXT = "show_text"
-    SHOW_ITEM = "show_item"
-    SHOW_ENTITY = "show_entity"
-
-
 class RconFontEnum(Enum):
     """
     字体枚举
     """
+
     DEFAULT = "minecraft:default"
 
 
@@ -138,23 +202,16 @@ class RconClickEvent(BaseModel):
     """
     点击事件
     """
-    action: Optional[RconClickEventEnum] = None
+
+    action: Optional[ClickAction] = None
     value: Optional[str] = None
 
 
-class RconBaseComponent(BaseModel):
+class RconBaseComponent(BaseComponent):
     """
-    基本组件
+    RconBaseComponent
     """
-    text: Optional[str] = None
-    color: Optional[TextColor] = None
-    bold: Optional[bool] = None
-    italic: Optional[bool] = None
-    underlined: Optional[bool] = None
-    strikethrough: Optional[bool] = None
-    obfuscated: Optional[bool] = None
-    insertion: Optional[str] = None
-    font: Optional[RconFontEnum] = None
+
     score: Optional[dict] = None
     selector: Optional[str] = None
     block: Optional[str] = None
@@ -165,7 +222,8 @@ class RconHoverEvent(BaseModel):
     """
     悬停事件
     """
-    action: Optional[RconHoverEventEnum] = None
+
+    action: Optional[HoverEvent] = None
     contents: Optional[List[RconBaseComponent]] = None
 
 
@@ -173,6 +231,7 @@ class RconTextComponent(RconBaseComponent):
     """
     文本组件
     """
+
     click_event: Optional[RconClickEvent] = None
     hover_event: Optional[RconHoverEvent] = None
 
@@ -181,6 +240,7 @@ class RconSendBody(BaseModel):
     """
     rcon 发送消息的body
     """
+
     message: List[RconTextComponent] = []
 
     def get_tellraw(self) -> str:

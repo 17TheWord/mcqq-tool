@@ -81,59 +81,59 @@ async def parse_onebot_msg_to_basemodel(
 
     # 发送群聊名称
     if plugin_config.mc_qq_send_group_name:
-        group_name = MessageItem()
+        group_name = BaseComponent()
         group_name.color = TextColor.GREEN
         if isinstance(event, GroupMessageEvent):
-            group_name.msg_text = (await bot.get_group_info(group_id=event.group_id))['group_name']
+            group_name.text = (await bot.get_group_info(group_id=event.group_id))['group_name']
         elif isinstance(event, GuildMessageEvent):
             guild_name = (await bot.get_guild_meta_by_guest(guild_id=event.guild_id))['guild_name']
             for per_channel in (await bot.get_guild_channel_list(guild_id=event.guild_id, no_cache=True)):
                 if str(event.channel_id) == per_channel['channel_id']:
                     channel_name = per_channel['channel_name']
-                    group_name.msg_text = f"{guild_name}丨{channel_name}"
+                    group_name.text = f"{guild_name}丨{channel_name}"
                     break
         websocket_message_body.message_list.append(group_name)
 
     member_nickname = await _get_onebot_member_nickname(bot, event, event.user_id)
 
-    sender_name = MessageItem()
-    sender_name.msg_text = member_nickname + " "
+    sender_name = BaseComponent()
+    sender_name.text = member_nickname + " "
     sender_name.color = TextColor.WHITE
     websocket_message_body.message_list.append(sender_name)
 
-    sender_say = MessageItem()
-    sender_say.msg_text = "说："
+    sender_say = BaseComponent()
+    sender_say.text = "说："
     sender_say.color = TextColor.GOLD
     websocket_message_body.message_list.append(sender_say)
 
     for msg in event.message:
-        per_msg = MessageItem()
-        per_msg.action_event = ActionEvent()
+        per_msg = BaseComponent()
+        per_msg.action_event = ClickEvent()
 
         # 文本
         if msg.type == "text":
-            per_msg.msg_text = msg.data['text'].replace("\r", "").replace("\n", "\n * ")
+            per_msg.text = msg.data['text'].replace("\r", "").replace("\n", "\n * ")
             per_msg.color = TextColor.WHITE
         # 图片
         elif msg.type == "image":
             if plugin_config.mc_qq_chat_image_enable:
-                per_msg.msg_text = str(ChatImageModel(url=msg.data['url'], name="图片"))
+                per_msg.text = str(ChatImageMod(url=msg.data['url'], name="图片"))
             else:
-                per_msg.msg_text = "[图片]"
+                per_msg.text = "[图片]"
                 per_msg.action_event.click_event_url = msg.data['url']
                 per_msg.action_event.hover_event_text = "[查看图片]"
             per_msg.color = TextColor.AQUA
         # 表情
         elif msg.type == "face":
-            per_msg.msg_text = '[表情]'
+            per_msg.text = '[表情]'
             per_msg.color = TextColor.YELLOW
         # 语音
         elif msg.type == "record":
-            per_msg.msg_text = '[语音]'
+            per_msg.text = '[语音]'
             per_msg.color = TextColor.GREEN
         # 视频
         elif msg.type == "video":
-            per_msg.msg_text = '[视频]'
+            per_msg.text = '[视频]'
             per_msg.action_event.click_event_url = msg.data['url']
             per_msg.action_event.hover_event_text = "[查看视频]"
             per_msg.color = TextColor.LIGHT_PURPLE
@@ -141,21 +141,20 @@ async def parse_onebot_msg_to_basemodel(
         elif msg.type == "at":
             # 获取被@ 群/频道 昵称
             at_member_nickname = await _get_onebot_member_nickname(bot, event, msg.data['qq'])
-            per_msg.msg_text = f"@{at_member_nickname} "
+            per_msg.text = f"@{at_member_nickname} "
             per_msg.color = TextColor.GREEN
         # share
         elif msg.type == "share":
-            per_msg.msg_text = "[分享]"
+            per_msg.text = "[分享]"
             per_msg.action_event.click_event_url = msg.data['url']
             per_msg.action_event.hover_event_text = "[查看分享]"
             per_msg.color = TextColor.YELLOW
         # forward
         elif msg.type == "forward":
-            # TODO 将合并转发消息拼接为字符串
             # 获取合并转发 await bot.get_forward_msg(message_id=event.message_id)
-            per_msg.msg_text = '[合并转发]'
+            per_msg.text = '[合并转发]'
         else:
-            per_msg.msg_text = f"[{msg.type}]"
+            per_msg.text = f"[{msg.type}]"
             per_msg.color = TextColor.WHITE
         websocket_message_body.message_list.append(per_msg)
 
@@ -180,62 +179,62 @@ async def parse_qq_msg_to_basemodel(
 
     # 发送群聊名称
     if plugin_config.mc_qq_send_group_name:
-        group_name = MessageItem()
+        group_name = BaseComponent()
         group_name.color = TextColor.GREEN
         guild: Guild = await bot.get_guild(guild_id=event.guild_id)
         channel: Channel = await bot.get_channel(channel_id=event.channel_id)
-        group_name.msg_text = f"{guild.name}丨{channel.name}"
+        group_name.text = f"{guild.name}丨{channel.name}"
         websocket_message_body.message_list.append(group_name)
 
     member_nickname = await get_qq_member_nickname(bot, event, event.author.id)
 
-    sender_name = MessageItem()
-    sender_name.msg_text = member_nickname + " "
+    sender_name = BaseComponent()
+    sender_name.text = member_nickname + " "
     sender_name.color = TextColor.WHITE
     websocket_message_body.message_list.append(sender_name)
 
-    sender_say = MessageItem()
-    sender_say.msg_text = "说："
+    sender_say = BaseComponent()
+    sender_say.text = "说："
     sender_say.color = TextColor.GOLD
     websocket_message_body.message_list.append(sender_say)
 
     for msg in event.get_message():
-        per_msg = MessageItem()
-        per_msg.action_event = ActionEvent()
+        per_msg = BaseComponent()
+        per_msg.action_event = ClickEvent()
 
         # 文本
         if msg.type == "text":
-            per_msg.msg_text = msg.data['text'].replace("\r", "").replace("\n", "\n * ")
+            per_msg.text = msg.data['text'].replace("\r", "").replace("\n", "\n * ")
             per_msg.color = TextColor.WHITE
         # 表情
         elif msg.type == "emoji":
-            per_msg.msg_text = '[表情]'
+            per_msg.text = '[表情]'
             per_msg.color = TextColor.YELLOW
         # @用户
         elif msg.type == "mention_user":
-            per_msg.msg_text = f"@{await get_qq_member_nickname(bot, event, msg.data['user_id'])} "
+            per_msg.text = f"@{await get_qq_member_nickname(bot, event, msg.data['user_id'])} "
             per_msg.color = TextColor.GREEN
         # @频道
         elif msg.type == "mention_channel":
-            per_msg.msg_text = f"@{(await bot.get_channel(channel_id=event.channel_id)).name} "
+            per_msg.text = f"@{(await bot.get_channel(channel_id=event.channel_id)).name} "
             per_msg.color = TextColor.GREEN
         # @全体成员
         elif msg.type == "mention_everyone":
-            per_msg.msg_text = f"@全体成员 "
+            per_msg.text = f"@全体成员 "
             per_msg.color = TextColor.GREEN
         # 图片
         elif msg.type == "image" or "attachment":
             per_msg.color = TextColor.AQUA
             if plugin_config.mc_qq_chat_image_enable:
                 img_url = msg.data['url'] if msg.data['url'].startswith("http") else f"http://{msg.data['url']}"
-                per_msg.msg_text = str(ChatImageModel(url=img_url, name="图片"))
+                per_msg.text = str(ChatImageMod(url=img_url, name="图片"))
             else:
-                per_msg.msg_text = "[图片]"
+                per_msg.text = "[图片]"
                 per_msg.action_event.click_event_url = msg.data['url']
                 per_msg.action_event.hover_event_text = "[查看图片]"
         # 视频
         else:
-            per_msg.msg_text = f"[{msg.type}]"
+            per_msg.text = f"[{msg.type}]"
             per_msg.color = TextColor.WHITE
         websocket_message_body.message_list.append(per_msg)
 
@@ -295,7 +294,7 @@ async def parse_onebot_rcon_msg_to_basemodel(
             text_component.color = TextColor.AQUA
             if plugin_config.mc_qq_rcon_click_action_enable:
                 text_component.clickEvent = RconClickEvent(
-                    action=RconClickEventEnum.OPEN_URL,
+                    action=ClickAction.OPEN_URL,
                     value=msg.data['url']
                 )
             if plugin_config.mc_qq_rcon_hover_event_enable:
@@ -314,7 +313,7 @@ async def parse_onebot_rcon_msg_to_basemodel(
             text_component.color = TextColor.LIGHT_PURPLE
             if plugin_config.mc_qq_rcon_click_action_enable:
                 text_component.clickEvent = RconClickEvent(
-                    action=RconClickEventEnum.OPEN_URL,
+                    action=ClickAction.OPEN_URL,
                     value=msg.data['url']
                 )
             if plugin_config.mc_qq_rcon_hover_event_enable:
@@ -330,7 +329,6 @@ async def parse_onebot_rcon_msg_to_basemodel(
             text_component.text = "[分享]"
             text_component.color = TextColor.YELLOW
         elif msg.type == "forward":
-            # TODO 将合并转发消息拼接为字符串
             # 获取合并转发 await bot.get_forward_msg(message_id=event.message_id)
             text_component.text = '[合并转发]'
         else:
@@ -401,7 +399,7 @@ async def parse_qq_rcon_msg_to_basemodel(
             text_component.color = TextColor.AQUA
             if plugin_config.mc_qq_rcon_click_action_enable:
                 text_component.clickEvent = RconClickEvent(
-                    action=RconClickEventEnum.OPEN_URL,
+                    action=ClickAction.OPEN_URL,
                     value=msg.data['url']
                 )
             if plugin_config.mc_qq_rcon_hover_event_enable:
@@ -426,11 +424,11 @@ def parse_send_title_to_basemodel(
 
     websocket_send_body.api = "send_title"
 
-    websocket_send_title_item = WebSocketSendTitleItem()
+    websocket_send_title_item = SendTitleItem()
     websocket_send_title_item.title = args_list[0]
     websocket_send_title_item.subtitle = args_list[1] if len(args_list) > 1 else None
 
-    websocket_send_title_body = WebSocketSendTitleBody()
+    websocket_send_title_body = SendTitleBody()
     websocket_send_title_body.send_title = websocket_send_title_item
 
     websocket_send_body.data = websocket_send_title_body
@@ -448,7 +446,7 @@ def parse_actionbar_to_basemodel(
     """
     websocket_send_body = WebSocketSendBody()
     websocket_send_body.api = "actionbar"
-    websocket_send_actionbar_body = WebSocketSendActionBarBody()
+    websocket_send_actionbar_body = SendActionBarBody()
     websocket_send_actionbar_body.text = args
     websocket_send_body.data = websocket_send_actionbar_body
     return websocket_send_body
