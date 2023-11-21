@@ -103,7 +103,7 @@ class BaseComponent(BaseModel):
     """
 
     text: Optional[str] = None
-    color: Optional[TextColor] = None
+    color: Optional[TextColor] = TextColor.WHITE
     font: Optional[str] = None
     bold: Optional[bool] = False
     italic: Optional[bool] = False
@@ -223,7 +223,7 @@ class RconHoverEvent(BaseModel):
     悬停事件
     """
 
-    action: Optional[HoverEvent] = None
+    action: Optional[HoverAction] = None
     contents: Optional[List[RconBaseComponent]] = None
 
 
