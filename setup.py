@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setuptools.setup(
     name="mcqq-tool",
-    version="1.0.2",
+    version="1.0.3",
     author="17TheWord",
     author_email="17theword@gmail.com",
     description="MC_QQ 工具包",
