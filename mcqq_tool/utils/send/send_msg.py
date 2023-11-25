@@ -6,7 +6,7 @@ from typing import Union
 
 from nonebot import logger, get_bot
 from nonebot.adapters.onebot.v11 import Bot as OneBot
-from nonebot.adapters.qq import Bot as QQBot
+from nonebot.adapters.qq import Bot as QQBot, AuditException, ActionFailed
 from nonebot.exception import FinishedException
 
 
@@ -26,19 +26,17 @@ def _get_available_bot(bot_id: str, server_name: str) -> Union[OneBot, QQBot]:
         try:
             bot = get_bot()
         except ValueError as e:
-            logger.warning(
-                f"[MC_QQ]丨当前无其他Bot可用，将跳过发送 Server: {server_name} 的信息"
-            )
+            logger.warning(f"[MC_QQ]丨当前无其他Bot可用，将跳过发送 Server: {server_name} 的信息")
             raise FinishedException
     except ValueError as e:
-        logger.warning(
-            f"[MC_QQ]丨当前无其他Bot可用，将跳过发送 Server: {server_name} 的信息"
-        )
+        logger.warning(f"[MC_QQ]丨当前无其他Bot可用，将跳过发送 Server: {server_name} 的信息")
         raise FinishedException
     return bot
 
 
-async def send_msg_to_onebot_group(bot_id: str, group_id: int, server_name: str, message: str):
+async def send_msg_to_onebot_group(
+    bot_id: str, group_id: int, server_name: str, message: str
+):
     """
     发送消息到 OneBot 适配器群聊
     :param server_name: 服务器名
@@ -48,14 +46,13 @@ async def send_msg_to_onebot_group(bot_id: str, group_id: int, server_name: str,
     :return:
     """
     bot: OneBot = _get_available_bot(bot_id=bot_id, server_name=server_name)
-    await bot.send_group_msg(
-        group_id=group_id,
-        message=message
-    )
-    logger.info(f"[MC_QQ]丨from [{server_name}] to [群:{group_id}] \"{message}\"")
+    await bot.send_group_msg(group_id=group_id, message=message)
+    logger.info(f'[MC_QQ]丨from [{server_name}] to [群:{group_id}] "{message}"')
 
 
-async def send_msg_to_onebot_guild(bot_id: str, guild_id: int, channel_id: int, server_name: str, message: str):
+async def send_msg_to_onebot_guild(
+    bot_id: str, guild_id: int, channel_id: int, server_name: str, message: str
+):
     """
     发送消息到 OneBot 适配器频道
     :param server_name:
@@ -67,16 +64,16 @@ async def send_msg_to_onebot_guild(bot_id: str, guild_id: int, channel_id: int, 
     """
     bot: OneBot = _get_available_bot(bot_id=bot_id, server_name=server_name)
     await bot.send_guild_channel_msg(
-        guild_id=guild_id,
-        channel_id=channel_id,
-        message=message
+        guild_id=guild_id, channel_id=channel_id, message=message
     )
     logger.info(
-        f"[MC_QQ]丨from [{server_name}] to [频道:{guild_id}/{channel_id}] \"{message}\""
+        f'[MC_QQ]丨from [{server_name}] to [频道:{guild_id}/{channel_id}] "{message}"'
     )
 
 
-async def send_msg_to_qq_guild(bot_id: str, channel_id: str, server_name: str, message: str):
+async def send_msg_to_qq_guild(
+    bot_id: str, channel_id: str, server_name: str, message: str
+):
     """
      发送消息到 QQ 适配器频道
     :param server_name: 服务器名
@@ -86,10 +83,9 @@ async def send_msg_to_qq_guild(bot_id: str, channel_id: str, server_name: str, m
     :return:
     """
     bot = _get_available_bot(bot_id=bot_id, server_name=server_name)
-    await bot.send_to_channel(
-        channel_id=channel_id,
-        message=message
-    )
-    logger.info(
-        f"[MC_QQ]丨from [{server_name}] to [频道:{channel_id}] \"{message}\""
-    )
+    try:
+        await bot.send_to_channel(channel_id=channel_id, message=message)
+    except (AuditException, ActionFailed) as e:
+        logger.debug(f"[MC_QQ]丨发送到QQ子频道的消息在审核中")
+
+    logger.info(f'[MC_QQ]丨from [{server_name}] to [频道:{channel_id}] "{message}"')

@@ -5,7 +5,6 @@
 import json
 
 from nonebot import logger
-from nonebot.adapters.qq import ActionFailed
 
 from ..send import (
     send_msg_to_onebot_group,
@@ -84,12 +83,9 @@ async def send_msg_from_mc_common(message: str):
                     message=msg
                 )
             elif per_guild.adapter == "qq":
-                try:
-                    await send_msg_to_qq_guild(
-                        server_name=event.server_name,
-                        bot_id=str(per_guild.bot_id),
-                        channel_id=str(per_guild.channel_id),
-                        message=msg
-                    )
-                except ActionFailed as e:
-                    logger.debug(f"[MC_QQ]丨发送到频道的消息在审核中")
+                await send_msg_to_qq_guild(
+                    server_name=event.server_name,
+                    bot_id=str(per_guild.bot_id),
+                    channel_id=str(per_guild.channel_id),
+                    message=msg
+                )
