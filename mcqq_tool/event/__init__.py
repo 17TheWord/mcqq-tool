@@ -34,6 +34,14 @@ from .spigot import (
     PlayerQuitEvent,
     PlayerCommandPreprocessEvent
 )
+from .fabric import (
+    Player as FabricPlayer,
+    FabricServerMessageEvent,
+    FabricServerCommandMessageEvent,
+    FabricServerLivingEntityAfterDeathEvent,
+    FabricServerPlayConnectionJoinEvent,
+    FabricServerPlayConnectionDisconnectEvent
+)
 
 event_dict = {
     # 原版
@@ -51,4 +59,10 @@ event_dict = {
     "ForgePlayerLoggedInEvent": ForgePlayerLoggedInEvent,
     "ForgePlayerLoggedOutEvent": ForgePlayerLoggedOutEvent,
     "ForgePlayerRespawnEvent": ForgePlayerRespawnEvent,
+    # Fabric
+    "FabricServerMessageEvent": FabricServerMessageEvent,
+    "FabricServerCommandMessageEvent": FabricServerCommandMessageEvent,
+    "FabricServerLivingEntityAfterDeathEvent": FabricServerLivingEntityAfterDeathEvent,
+    "FabricServerPlayConnectionJoinEvent": FabricServerPlayConnectionJoinEvent,
+    "FabricServerPlayConnectionDisconnectEvent": FabricServerPlayConnectionDisconnectEvent
 }

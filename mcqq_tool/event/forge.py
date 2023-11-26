@@ -10,8 +10,7 @@ from .base import (
 
 
 class Player(BasePlayer):
-    """玩家信息"""
-    nickname: Optional[str] = None
+    """Forge Player"""
     uuid: Optional[str] = None
     ipAddress: Optional[str] = None
     level: Optional[str] = None
