@@ -43,7 +43,6 @@ def _msg_to_qq_process(event: BaseEvent) -> str:
 async def send_msg_from_mc_common(message: str):
     """处理来自MC的消息，并准备发送"""
     json_msg = json.loads(message)
-    print(json_msg)
     event = event_dict[json_msg["event_name"]].parse_obj(json_msg)
 
     if not (msg := _msg_to_qq_process(event_dict[json_msg["event_name"]].parse_obj(json_msg))):
