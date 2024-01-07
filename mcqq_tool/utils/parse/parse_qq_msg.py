@@ -14,9 +14,9 @@ from ...config import plugin_config
 
 
 async def _get_onebot_member_nickname(
-    bot: OneBot,
-    event: Union[GroupMessageEvent, GuildMessageEvent],
-    user_id: Union[int, str],
+        bot: OneBot,
+        event: Union[GroupMessageEvent, GuildMessageEvent],
+        user_id: Union[int, str],
 ) -> str:
     """
     获取 OneBot 群/频道成员昵称
@@ -51,7 +51,7 @@ async def _get_onebot_member_nickname(
 
 
 async def get_qq_member_nickname(
-    bot: QQBot, event: MessageCreateEvent, user_id: str
+        bot: QQBot, event: MessageCreateEvent, user_id: str
 ) -> str:
     """
     获取 QQ 群/频道成员昵称
@@ -66,7 +66,7 @@ async def get_qq_member_nickname(
 
 
 async def parse_onebot_msg_to_basemodel(
-    bot: OneBot, event: Union[GroupMessageEvent, GuildMessageEvent]
+        bot: OneBot, event: Union[GroupMessageEvent, GuildMessageEvent]
 ) -> WebSocketSendBody:
     """
     :param bot: OneBot
@@ -94,7 +94,7 @@ async def parse_onebot_msg_to_basemodel(
                 "guild_name"
             ]
             for per_channel in await bot.get_guild_channel_list(
-                guild_id=event.guild_id, no_cache=True
+                    guild_id=event.guild_id, no_cache=True
             ):
                 if str(event.channel_id) == per_channel["channel_id"]:
                     channel_name = per_channel["channel_name"]
@@ -199,7 +199,7 @@ async def parse_onebot_msg_to_basemodel(
 
 
 async def parse_qq_msg_to_basemodel(
-    bot: QQBot, event: MessageCreateEvent
+        bot: QQBot, event: MessageCreateEvent
 ) -> WebSocketSendBody:
     """
     格式化 QQ频道 消息为 WebSocketSendBody
@@ -296,7 +296,7 @@ async def parse_qq_msg_to_basemodel(
 
 
 async def parse_onebot_rcon_msg_to_basemodel(
-    bot: OneBot, event: Union[GroupMessageEvent, GuildMessageEvent]
+        bot: OneBot, event: Union[GroupMessageEvent, GuildMessageEvent]
 ) -> RconSendBody:
     """
     :param bot: OneBot
@@ -321,7 +321,7 @@ async def parse_onebot_rcon_msg_to_basemodel(
                 "guild_name"
             ]
             for per_channel in await bot.get_guild_channel_list(
-                guild_id=event.guild_id, no_cache=True
+                    guild_id=event.guild_id, no_cache=True
             ):
                 if str(event.channel_id) == per_channel["channel_id"]:
                     channel_name = per_channel["channel_name"]
@@ -400,7 +400,7 @@ async def parse_onebot_rcon_msg_to_basemodel(
 
 
 async def parse_qq_rcon_msg_to_basemodel(
-    bot: QQBot, event: MessageCreateEvent
+        bot: QQBot, event: MessageCreateEvent
 ) -> RconSendBody:
     """
     格式化 QQ频道 消息为 RconSendBody

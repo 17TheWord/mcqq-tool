@@ -6,7 +6,7 @@ from typing import Union
 
 from nonebot import logger, get_bot
 from nonebot.adapters.onebot.v11 import Bot as OneBot
-from nonebot.adapters.qq import Bot as QQBot
+from nonebot.adapters.qq import Bot as QQBot, AuditException, ActionFailed
 from nonebot.exception import FinishedException
 
 
@@ -86,10 +86,14 @@ async def send_msg_to_qq_guild(bot_id: str, channel_id: str, server_name: str, m
     :return:
     """
     bot = _get_available_bot(bot_id=bot_id, server_name=server_name)
-    await bot.send_to_channel(
-        channel_id=channel_id,
-        message=message
-    )
+    try:
+        await bot.send_to_channel(
+            channel_id=channel_id,
+            message=message
+        )
+    except (AuditException, ActionFailed) as e:
+        logger.debug(f"[MC_QQ]丨发送到QQ子频道的消息在审核中")
+
     logger.info(
         f"[MC_QQ]丨from [{server_name}] to [频道:{channel_id}] \"{message}\""
     )
