@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setuptools.setup(
     name="mcqq-tool",
-    version="1.0.4",
+    version="1.0.5",
     author="17TheWord",
     author_email="17theword@gmail.com",
     description="MC_QQ 工具包",
@@ -17,10 +17,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: OS Independent"
-    ],
-    install_requires=[
-        'nonebot2[websockets]',
-        'websockets>=10.3',
-        'aio-mc-rcon>=3.2.0'
     ]
 )
