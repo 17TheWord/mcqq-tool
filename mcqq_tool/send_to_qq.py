@@ -19,7 +19,7 @@ async def send_mc_msg_to_qq(server_name: str, msg_result: str):
                     bot: QQBot
                     # TODO: 未实现，一个月主动就四条，还是算了吧。
                     # await bot.send_to_c2c(openid=group.group_id, message=msg_result)
-                    logger.debug(f"[MC_QQ]丨未实现的适配器: {group.adapter}，一个月主动就四条，还是算了吧。")
+                    logger.debug(f"[MC_QQ]丨未实现的适配器: {group.adapter}，发送至群聊 {group.group_id}失败：一个月主动就四条，还是算了吧。")
                 else:
                     logger.error(f"[MC_QQ]丨未知的适配器: {group.adapter}")
 
