@@ -185,8 +185,8 @@ async def __send_common_to_target_server(
                     send_temp_result += f"选择了Rcon发送消息，但无rcon未开启，无法发送消息\n"
 
                 else:
-                    msg = await parse_qq_msg_to_base_model(bot=bot, event=event)
-                    send_temp_result += f"{msg}\n"
+                    msg, text = await parse_qq_msg_to_base_model(bot=bot, event=event)
+                    send_temp_result += f"{text}\n"
                     await mc_bot.send_msg(message=msg)
 
             temp_result += send_temp_result
