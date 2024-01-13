@@ -1,5 +1,5 @@
 import json
-from typing import Union, Optional
+from typing import Union, Optional, Tuple, List
 
 from nonebot.adapters.minecraft import (
     Message,
@@ -155,7 +155,7 @@ async def __get_common_qq_msg_parsing(
         event: Union[
             QQGuildMessageEvent, QQGroupAtMessageCreateEvent, OneBotGroupMessageEvent, OneBotGuildMessageEvent],
         rcon_mode: bool = False
-) -> tuple[list[str], str]:
+) -> Tuple[List[Union[str, Message]], str]:
     """
     获取QQ消息解析后的消息列表和日志文本
     :param bot: Bot对象
@@ -243,8 +243,10 @@ async def __get_common_qq_msg_parsing(
         log_text += temp_text
         if plugin_config.mc_qq_rcon_text_component_status == 2:
             message_list.append(temp_component.get_component().removeprefix('"').removesuffix('"'))
-        else:
+        elif rcon_mode:
             message_list.append(str(temp_component))
+        else:
+            message_list.append(temp_component)
 
     return message_list, log_text
 
@@ -257,7 +259,7 @@ async def parse_qq_msg_to_base_model(
             OneBotGroupMessageEvent,
             OneBotGuildMessageEvent
         ]
-) -> Message:
+) -> Tuple[Message, str]:
     """
     解析 QQ 消息，转为 WebSocketBody 模型
     :param bot: 聊天平台Bot实例
@@ -282,8 +284,11 @@ async def parse_qq_msg_to_base_model(
     message_list.append(MessageSegment.text(text="说：", color=TextColor.WHITE))
 
     # 消息内容
-    message_list += await __get_common_qq_msg_parsing(bot, event, False)
-    return message_list
+    temp_message_list, log_text = await __get_common_qq_msg_parsing(bot, event, False)
+
+    message_list += Message(temp_message_list)
+
+    return message_list, log_text
 
 
 def __get_rcon_hover_event_component(text: str, color: TextColor = TextColor.GOLD) -> RconHoverEvent:
