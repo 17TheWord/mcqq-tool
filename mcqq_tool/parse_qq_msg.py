@@ -353,12 +353,20 @@ async def parse_qq_msg_to_rcon_model(
 
     # 发送者昵称
     sender_nickname_text = await __get_group_or_nick_name(bot=bot, event=event, user_id=event.get_user_id())
-    sender_nickname_component = RconTextComponent(
-        text=sender_nickname_text, color=TextColor.GREEN
-    ) if plugin_config.mc_qq_rcon_text_component_status == 0 else sender_nickname_text
+    if plugin_config.mc_qq_rcon_text_component_status == 0:
+        sender_nickname_component = RconTextComponent(
+            text=sender_nickname_text, color=TextColor.GREEN
+        )
+    else:
+        sender_nickname_component = sender_nickname_text
 
-    message_list.append(sender_nickname_component.get_component().removeprefix('"').removesuffix('"'))
-    log_text += str(sender_nickname_component)
+    if isinstance(sender_nickname_component, RconTextComponent):
+        message_list.append(sender_nickname_component.get_component().removeprefix('"').removesuffix('"'))
+        log_text += str(sender_nickname_component)
+    else:
+        # 如果sender_nickname_component是string
+        message_list.append(sender_nickname_component.removeprefix('"').removesuffix('"'))
+        log_text += sender_nickname_component
 
     # 说
     message_list.append("说：")
