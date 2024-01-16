@@ -362,7 +362,7 @@ async def parse_qq_msg_to_rcon_model(
         message_list.append(sender_nickname_component.get_component().removeprefix('"').removesuffix('"'))
     else:
         sender_nickname_component = sender_nickname_text
-
+    message_list.append(sender_nickname_component)
     # 说
     message_list.append("说：")
     log_text += "说："
