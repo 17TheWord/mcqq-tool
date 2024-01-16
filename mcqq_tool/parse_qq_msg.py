@@ -1,4 +1,3 @@
-import json
 from typing import Union, Optional, Tuple, List
 
 from nonebot.adapters.minecraft import (
@@ -8,7 +7,6 @@ from nonebot.adapters.minecraft import (
     HoverEvent,
     HoverAction,
     ClickAction,
-    RconSendBody,
     BaseComponent,
     RconHoverEvent,
     MessageSegment,
@@ -179,16 +177,20 @@ async def __get_common_qq_msg_parsing(
             temp_text = "[图片]"
             temp_color = TextColor.AQUA
             img_url = msg.data["url"] if msg.data["url"].startswith("http") else f"https://{msg.data['url']}"
-            if plugin_config.mc_qq_chat_image_enable and msg.type in ["image", "attachment"]:
-                temp_text = str(ChatImageModComponent(url=img_url, name=temp_text))
+            if plugin_config.mc_qq_chat_image_enable:
+                temp_text = str(ChatImageModComponent(url=img_url))
             else:
                 hover_event, click_event = __get_action_event_component(rcon_mode, img_url, temp_text, TextColor.BLUE)
         elif msg.type == "video":
             temp_text = "[视频]"
             temp_color = TextColor.LIGHT_PURPLE
             img_url = msg.data["url"] if msg.data["url"].startswith("http") else f"https://{msg.data['url']}"
-            hover_event, click_event = __get_action_event_component(rcon_mode, img_url, temp_text,
-                                                                    TextColor.DARK_PURPLE)
+            hover_event, click_event = __get_action_event_component(
+                rcon_mode,
+                img_url,
+                temp_text,
+                TextColor.DARK_PURPLE
+            )
         elif msg.type == "share":
             temp_text = "[分享]"
             temp_color = TextColor.GOLD
@@ -227,25 +229,25 @@ async def __get_common_qq_msg_parsing(
         else:
             temp_text = "[未知消息类型]"
 
-        # 消息内容
-        temp_component = RconTextComponent(
-            text=temp_text,
-            color=temp_color,
-            hover_event=hover_event,
-            click_event=click_event
-        ) if rcon_mode else MessageSegment.text(
-            text=temp_text,
-            color=temp_color,
-            hover_event=hover_event,
-            click_event=click_event
-        )
-
         log_text += temp_text
-        if plugin_config.mc_qq_rcon_text_component_status == 2:
-            message_list.append(temp_component.get_component().removeprefix('"').removesuffix('"'))
+
+        if plugin_config.mc_qq_rcon_text_component_status == 2 and rcon_mode:
+            temp_component = RconTextComponent(
+                text=temp_text,
+                color=temp_color,
+                hover_event=hover_event,
+                click_event=click_event
+            ).get_component()
+            message_list.append(temp_component)
         elif rcon_mode:
-            message_list.append(str(temp_component))
+            message_list.append(temp_text)
         else:
+            temp_component = MessageSegment.text(
+                text=temp_text,
+                color=temp_color,
+                hover_event=hover_event,
+                click_event=click_event
+            )
             message_list.append(temp_component)
 
     return message_list, log_text
@@ -331,9 +333,9 @@ async def parse_qq_msg_to_rcon_model(
     :param event: 事件
     :return: RconSendBody
     """
-    rcon_send_body = RconSendBody()
+
     prefix_component = "[MC_QQ] " if plugin_config.mc_qq_rcon_text_component_status == 0 else RconTextComponent(
-        text="[MC_QQ] ", color=TextColor.YELLOW).get_component().removeprefix('"').removesuffix('"')
+        text="[MC_QQ] ", color=TextColor.YELLOW).get_component()
     log_text = "[MC_QQ] "
 
     message_list = ["", prefix_component]
@@ -348,18 +350,16 @@ async def parse_qq_msg_to_rcon_model(
             text=temp_group_name, color=TextColor.GREEN
         ) if plugin_config.mc_qq_rcon_text_component_status == 0 else temp_group_name
 
-        message_list.append(group_name_component.get_component().removeprefix('"').removesuffix('"'))
+        message_list.append(group_name_component.get_component())
         log_text += str(group_name_component)
 
     # 发送者昵称
     sender_nickname_text = await __get_group_or_nick_name(bot=bot, event=event, user_id=event.get_user_id())
     log_text += sender_nickname_text
-    if plugin_config.mc_qq_rcon_text_component_status == 2:
+    if plugin_config.mc_qq_rcon_text_component_status != 0:
         sender_nickname_component = RconTextComponent(
             text=sender_nickname_text, color=TextColor.GREEN
-        )
-
-        message_list.append(sender_nickname_component.get_component().removeprefix('"').removesuffix('"'))
+        ).get_component()
     else:
         sender_nickname_component = sender_nickname_text
     message_list.append(sender_nickname_component)
@@ -367,18 +367,14 @@ async def parse_qq_msg_to_rcon_model(
     message_list.append("说：")
     log_text += "说："
 
-    rcon_send_body.message = message_list
     # 消息内容
-    message_body = RconSendBody()
+
     temp_message_list, log_msgs = await __get_common_qq_msg_parsing(bot=bot, event=event, rcon_mode=True)
     log_text += log_msgs
 
-    message_body.message = temp_message_list
+    message_list = message_list + temp_message_list
 
-    result = message_list + temp_message_list
-
-    parsed_result = [json.loads(item) if item.startswith('{') else item for item in result]
-    return str(parsed_result), log_text
+    return str(message_list), log_text
 
 
 def parse_qq_screen_cmd_to_rcon_model(
