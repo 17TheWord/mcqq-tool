@@ -199,19 +199,19 @@ async def __get_common_qq_msg_parsing(
 
         # @用户 OneBot
         elif msg.type == "at":
-            temp_text = f"@{await __get_group_or_nick_name(bot, event, msg.data['qq'])} "
+            temp_text = f"@{await __get_group_or_nick_name(bot, event, msg.data['qq'])}"
             temp_color = TextColor.GREEN
 
         # @用户 QQ
         elif msg.type == "mention_user":
             temp_text = (
-                f"@{await __get_group_or_nick_name(bot, event, msg.data['user_id'])} "
+                f"@{await __get_group_or_nick_name(bot, event, msg.data['user_id'])}"
             )
             temp_color = TextColor.GREEN
 
         # @子频道
         elif msg.type == "mention_channel":
-            temp_text = f"@{(await bot.get_channel(channel_id=event.channel_id)).name} "
+            temp_text = f"@{(await bot.get_channel(channel_id=event.channel_id)).name}"
             temp_color = TextColor.GREEN
 
         # @全体成员
@@ -228,6 +228,8 @@ async def __get_common_qq_msg_parsing(
             temp_color = TextColor.GOLD
         else:
             temp_text = "[未知消息类型]"
+
+        temp_text = temp_text.strip() + " "
 
         log_text += temp_text
 
