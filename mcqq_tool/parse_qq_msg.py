@@ -174,7 +174,6 @@ async def __get_common_qq_msg_parsing(
         temp_color = TextColor.WHITE
         if msg.type == "text":
             temp_text = msg.data["text"].replace("\r", "").replace("\n", "\n * ")
-            temp_color = TextColor.WHITE
 
         elif msg.type in ["image", "attachment"]:
             temp_text = "[图片]"
@@ -198,7 +197,7 @@ async def __get_common_qq_msg_parsing(
 
         # @用户 OneBot
         elif msg.type == "at":
-            temp_text = f"@{__get_group_or_nick_name(bot, event, msg.data['qq'])} "
+            temp_text = f"@{await __get_group_or_nick_name(bot, event, msg.data['qq'])} "
             temp_color = TextColor.GREEN
 
         # @用户 QQ
@@ -240,6 +239,7 @@ async def __get_common_qq_msg_parsing(
             hover_event=hover_event,
             click_event=click_event
         )
+
         log_text += temp_text
         if plugin_config.mc_qq_rcon_text_component_status == 2:
             message_list.append(temp_component.get_component().removeprefix('"').removesuffix('"'))
@@ -336,7 +336,7 @@ async def parse_qq_msg_to_rcon_model(
         text="[MC_QQ] ", color=TextColor.YELLOW).get_component().removeprefix('"').removesuffix('"')
     log_text = "[MC_QQ] "
 
-    message_list = [prefix_component]
+    message_list = ["", prefix_component]
 
     # 是否发送群聊名称
     if plugin_config.mc_qq_send_group_name or (
@@ -353,12 +353,15 @@ async def parse_qq_msg_to_rcon_model(
 
     # 发送者昵称
     sender_nickname_text = await __get_group_or_nick_name(bot=bot, event=event, user_id=event.get_user_id())
-    sender_nickname_component = RconTextComponent(
-        text=sender_nickname_text, color=TextColor.GREEN
-    ) if plugin_config.mc_qq_rcon_text_component_status == 0 else sender_nickname_text
+    log_text += sender_nickname_text
+    if plugin_config.mc_qq_rcon_text_component_status == 2:
+        sender_nickname_component = RconTextComponent(
+            text=sender_nickname_text, color=TextColor.GREEN
+        )
 
-    message_list.append(sender_nickname_component.get_component().removeprefix('"').removesuffix('"'))
-    log_text += str(sender_nickname_component)
+        message_list.append(sender_nickname_component.get_component().removeprefix('"').removesuffix('"'))
+    else:
+        sender_nickname_component = sender_nickname_text
 
     # 说
     message_list.append("说：")
@@ -375,7 +378,6 @@ async def parse_qq_msg_to_rcon_model(
     result = message_list + temp_message_list
 
     parsed_result = [json.loads(item) if item.startswith('{') else item for item in result]
-
     return str(parsed_result), log_text
 
 
