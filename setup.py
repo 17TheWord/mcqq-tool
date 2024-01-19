@@ -11,7 +11,7 @@ setuptools.setup(
     description="MC_QQ 工具包",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/17TheWord/mcqq-tool",
+    url="https://github.com/MineGraphCN/mcqq-tool",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3.9",
