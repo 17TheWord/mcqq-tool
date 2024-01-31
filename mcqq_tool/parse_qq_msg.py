@@ -102,7 +102,7 @@ async def __get_group_or_nick_name(
     return temp_text
 
 
-def __get_hover_event_component(temp_text):
+def __get_hover_event_component(temp_text, color):
     """
     获取HoverEvent组件
     :param temp_text:
@@ -110,7 +110,7 @@ def __get_hover_event_component(temp_text):
     """
     return HoverEvent(
         action=HoverAction.SHOW_TEXT,
-        contents=[BaseComponent(text=temp_text)]
+        base_component_list=[BaseComponent(text=temp_text, color=color)]
     )
 
 
@@ -137,13 +137,14 @@ def __get_action_event_component(rcon_mode: bool, img_url: str, temp_text: str, 
     """
     hover_event = None
     click_event = None
+    temp_text = temp_text.replace("[", "[查看")
     if rcon_mode:
         if plugin_config.mc_qq_rcon_hover_event_enable:
-            hover_event = __get_rcon_hover_event_component(temp_text.replace("[", "[查看"), color)
+            hover_event = __get_rcon_hover_event_component(temp_text, color)
         if plugin_config.mc_qq_rcon_click_action_enable:
             click_event = __get_rcon_click_event_component(img_url)
     else:
-        hover_event = __get_hover_event_component(temp_text)
+        hover_event = __get_hover_event_component(temp_text, color)
         click_event = __get_click_event_component(img_url)
     return hover_event, click_event
 
@@ -274,21 +275,26 @@ async def parse_qq_msg_to_base_model(
     message_list = Message(MessageSegment.text(text="[MC_QQ] ", color=TextColor.YELLOW))
 
     # 是否发送群聊名称
+    log_text = ""
     if plugin_config.mc_qq_send_group_name or (
             plugin_config.mc_qq_send_guild_name or plugin_config.mc_qq_send_channel_name
     ):
         temp_group_name = await __get_group_or_nick_name(bot, event)
         message_list.append(MessageSegment.text(text=f"{temp_group_name} ", color=TextColor.GREEN))
+        log_text += temp_group_name
 
     # 消息发送者昵称
     sender_nickname_text = await __get_group_or_nick_name(bot, event, str(event.get_user_id()))
     message_list.append(MessageSegment.text(text=f"{sender_nickname_text} ", color=TextColor.GREEN))
+    log_text += sender_nickname_text + " "
 
     # 消息 '说：'
-    message_list.append(MessageSegment.text(text="说：", color=TextColor.WHITE))
+    message_list.append(MessageSegment.text(text=plugin_config.mc_qq_say_way, color=TextColor.WHITE))
+    log_text += plugin_config.mc_qq_say_way
 
     # 消息内容
-    temp_message_list, log_text = await __get_common_qq_msg_parsing(bot, event, False)
+    temp_message_list, msg_log_text = await __get_common_qq_msg_parsing(bot, event, False)
+    log_text += msg_log_text
 
     message_list += Message(temp_message_list)
 
@@ -338,7 +344,7 @@ async def parse_qq_msg_to_rcon_model(
 
     prefix_component = "[MC_QQ] " if plugin_config.mc_qq_rcon_text_component_status == 0 else RconTextComponent(
         text="[MC_QQ] ", color=TextColor.YELLOW).get_component()
-    log_text = "[MC_QQ] "
+    log_text = ""
 
     message_list = ["", prefix_component]
 
@@ -366,8 +372,8 @@ async def parse_qq_msg_to_rcon_model(
         sender_nickname_component = sender_nickname_text
     message_list.append(sender_nickname_component)
     # 说
-    message_list.append("说：")
-    log_text += "说："
+    message_list.append(plugin_config.mc_qq_say_way)
+    log_text += plugin_config.mc_qq_say_way
 
     # 消息内容
 

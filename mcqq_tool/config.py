@@ -52,6 +52,8 @@ class Config(BaseModel, extra=Extra.ignore):
     mc_qq_send_channel_name: Optional[bool] = False
     # 是否显示服务器名称
     mc_qq_display_server_name: Optional[bool] = False
+    # 用户发言修饰
+    mc_qq_say_way: Optional[str] = "说："
     # 服务器列表字典
     mc_qq_server_dict: Optional[Dict[str, Server]] = Field(default_factory=dict)
     # MC_QQ 频道管理员身份组

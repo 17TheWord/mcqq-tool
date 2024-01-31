@@ -5,13 +5,13 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setuptools.setup(
     name="mcqq-tool",
-    version="1.1.1",
+    version="1.1.2",
     author="17TheWord",
     author_email="17theword@gmail.com",
     description="MC_QQ 工具包",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/17TheWord/mcqq-tool",
+    url="https://github.com/MineGraphCN/mcqq-tool",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3.9",
