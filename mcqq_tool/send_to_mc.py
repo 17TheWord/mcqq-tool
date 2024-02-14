@@ -149,7 +149,7 @@ async def __send_common_to_target_server(
                 send_temp_result += f"命令：{command} "
 
                 if server_config.rcon_cmd and mc_bot.rcon:
-                                        if command_type == "title":
+                    if command_type == "title":
                         title, subtitle = command.split("\n") if "\n" in command else (command, "")
                         title_cmd = f'title @a title ["{title}"]'
                         title_result = (await mc_bot.rcon.send_cmd(title_cmd))[0]
