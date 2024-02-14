@@ -49,9 +49,9 @@ def __onebot_msg_rule(event: Union[OneBotGroupMessageEvent, OneBotGuildMessageEv
     :return: bool
     """
     if isinstance(event, OneBotGroupMessageEvent):
-        return str(event.group_id) in ONEBOT_GROUP_ID_LIST
+        return str(event.group_id) in ONEBOT_GROUP_ID_LIST and not (event.self_id == event.user_id)
     elif isinstance(event, OneBotGuildMessageEvent):
-        return f"{event.guild_id}:{event.channel_id}" in ONEBOT_GUILD_ID_LIST
+        return f"{event.guild_id}:{event.channel_id}" in ONEBOT_GUILD_ID_LIST and not (event.self_tiny_id == event.user_id)
     return False
 
 
