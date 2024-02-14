@@ -151,10 +151,15 @@ async def __send_common_to_target_server(
                 if server_config.rcon_cmd and mc_bot.rcon:
                     if command_type == "title":
                         title, subtitle = command.split("\n") if "\n" in command else (command, "")
-                        title_result = (await mc_bot.rcon.send_cmd(title))[0]
+                        title_cmd = f'title @a title ["{title}"]'
+                        title_result = (await mc_bot.rcon.send_cmd(title_cmd))[0]
                         if subtitle:
-                            title_result += (await mc_bot.rcon.send_cmd(subtitle))[0]
+                            subtitle_cmd = f'title @a subtitle ["{subtitle}"]'
+                            title_result += (await mc_bot.rcon.send_cmd(subtitle_cmd))[0]
                         send_temp_result += f"结果：{title_result}"
+                    elif command_type == "command":
+                        response = await mc_bot.rcon.send_cmd(command)
+                        send_temp_result += f"结果：{response[0]}\n"
                     else:
                         cmd = parse_qq_screen_cmd_to_rcon_model(command_type, command)
                         response = await mc_bot.rcon.send_cmd(cmd)
