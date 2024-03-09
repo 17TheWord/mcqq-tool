@@ -4,7 +4,7 @@
 
 from typing import Optional, List, Dict
 
-from nonebot import get_driver
+from nonebot import get_plugin_config
 from pydantic import BaseModel, Extra, Field
 
 
@@ -70,7 +70,7 @@ class Config(BaseModel, extra=Extra.ignore):
     mc_qq_cmd_whitelist: Optional[List[str]] = ["list", "tps", "banlist"]
 
 
-plugin_config: Config = Config.parse_obj(get_driver().config)
+plugin_config: Config = get_plugin_config(Config)
 
 __all__ = [
     "Group",
