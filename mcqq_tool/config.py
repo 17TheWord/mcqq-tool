@@ -5,11 +5,12 @@
 from typing import Optional, List, Dict
 
 from nonebot import get_plugin_config
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Field
 
 
 class Guild(BaseModel):
     """频道配置"""
+
     # 频道ID，QQ适配器不需要频道ID
     guild_id: Optional[str] = None
     # 子频道ID
@@ -22,6 +23,7 @@ class Guild(BaseModel):
 
 class Group(BaseModel):
     """群配置"""
+
     # 群ID
     group_id: str
     # 适配器类型
@@ -32,45 +34,53 @@ class Group(BaseModel):
 
 class Server(BaseModel):
     """服务器配置"""
+
     # 服务器群列表
-    group_list: Optional[List[Group]] = []
+    group_list: List[Group] = []
     # 服务器频道列表
-    guild_list: Optional[List[Guild]] = []
+    guild_list: List[Guild] = []
     # 是否开启 Rcon 消息
-    rcon_msg: Optional[bool] = False
+    rcon_msg: bool = False
     # 是否开启 Rcon 命令
-    rcon_cmd: Optional[bool] = False
+    rcon_cmd: bool = False
 
 
-class Config(BaseModel, extra=Extra.ignore):
+class MCQQConfig(BaseModel):
     """配置"""
+
     # 是否发送群聊名称
-    mc_qq_send_group_name: Optional[bool] = False
+    send_group_name: bool = False
     # 是否发送频道名称
-    mc_qq_send_guild_name: Optional[bool] = False
+    send_guild_name: bool = False
     # 是否发送子频道名称
-    mc_qq_send_channel_name: Optional[bool] = False
+    send_channel_name: bool = False
     # 是否显示服务器名称
-    mc_qq_display_server_name: Optional[bool] = False
+    display_server_name: bool = False
     # 用户发言修饰
-    mc_qq_say_way: Optional[str] = "说："
+    say_way: str = "说："
     # 服务器列表字典
-    mc_qq_server_dict: Optional[Dict[str, Server]] = Field(default_factory=dict)
+    server_dict: Dict[str, Server] = Field(default_factory=dict)
     # MC_QQ 频道管理员身份组
-    mc_qq_guild_admin_roles: Optional[List[str]] = ["频道主", "超级管理员"]
+    guild_admin_roles: List[str] = ["频道主", "超级管理员"]
     # MC_QQ 启用 ChatImage MOD
-    mc_qq_chat_image_enable: Optional[bool] = False
+    chat_image_enable: bool = False
     # MC_QQ Rcon 启用 ClickAction
-    mc_qq_rcon_click_action_enable: Optional[bool] = False
+    rcon_click_action_enable: bool = False
     # MC_QQ Rcon 启用 HoverEvent
-    mc_qq_rcon_hover_event_enable: Optional[bool] = False
+    rcon_hover_event_enable: bool = False
     # MC_QQ Rcon TextComponent 启用状态
-    mc_qq_rcon_text_component_status: Optional[int] = 1
+    rcon_text_component_status: int = 1
     # MC_QQ 命令白名单
-    mc_qq_cmd_whitelist: Optional[List[str]] = ["list", "tps", "banlist"]
+    cmd_whitelist: List[str] = ["list", "tps", "banlist"]
 
 
-plugin_config: Config = get_plugin_config(Config)
+class Config(BaseModel):
+    """配置项"""
+
+    mc_qq: MCQQConfig
+
+
+plugin_config: MCQQConfig = get_plugin_config(Config).mc_qq
 
 __all__ = [
     "Group",

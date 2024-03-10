@@ -1,4 +1,4 @@
-from nonebot import logger, get_bots
+from nonebot import logger, get_bot
 from nonebot.adapters.onebot.v11 import Bot as OneBot
 from nonebot.adapters.qq import Bot as QQBot, AuditException
 
@@ -6,12 +6,12 @@ from .config import plugin_config
 
 
 async def send_mc_msg_to_qq(server_name: str, msg_result: str):
-    if server := plugin_config.mc_qq_server_dict.get(server_name):
-        if plugin_config.mc_qq_display_server_name:
+    if server := plugin_config.server_dict.get(server_name):
+        if plugin_config.display_server_name:
             msg_result = f"[{server_name}] {msg_result}"
 
         for group in server.group_list:
-            if bot := get_bots().get(group.bot_id):
+            if bot := get_bot(group.bot_id):
                 if group.adapter == "onebot":
                     bot: OneBot
                     await bot.send_group_msg(group_id=int(group.group_id), message=msg_result)
@@ -24,7 +24,7 @@ async def send_mc_msg_to_qq(server_name: str, msg_result: str):
                     logger.error(f"[MC_QQ]丨未知的适配器: {group.adapter}")
 
         for guild in server.guild_list:
-            if bot := get_bots().get(guild.bot_id):
+            if bot := get_bot(guild.bot_id):
                 if guild.adapter == "onebot":
                     bot: OneBot
                     await bot.send_guild_channel_msg(
