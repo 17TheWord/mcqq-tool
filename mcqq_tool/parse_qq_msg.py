@@ -1,7 +1,6 @@
 from typing import Union, Optional, Tuple, List
-
-from nonebot.adapters.minecraft import (
-    Message,
+from nonebot.adapters.minecraft import Message, MessageSegment
+from nonebot.adapters.minecraft.model import (
     TextColor,
     ClickEvent,
     HoverEvent,
@@ -9,7 +8,6 @@ from nonebot.adapters.minecraft import (
     ClickAction,
     BaseComponent,
     RconHoverEvent,
-    MessageSegment,
     RconClickEvent,
     RconTextComponent,
     ChatImageModComponent
@@ -63,17 +61,17 @@ async def __get_group_or_nick_name(
                 )["nickname"]
         else:
             temp_text = ""
-            if plugin_config.mc_qq_send_guild_name:
+            if plugin_config.send_guild_name:
                 guild_name = (await bot.get_guild_meta_by_guest(guild_id=event.guild_id))["guild_name"]
                 temp_text = f"[{guild_name}]"
-            if plugin_config.mc_qq_send_channel_name:
+            if plugin_config.send_channel_name:
                 for per_channel in await bot.get_guild_channel_list(
                         guild_id=event.guild_id, no_cache=True
                 ):
                     if str(event.channel_id) == per_channel["channel_id"]:
                         channel_name = per_channel["channel_name"]
 
-                        if plugin_config.mc_qq_send_guild_name:
+                        if plugin_config.send_guild_name:
                             temp_text = temp_text.replace("]", f"丨{channel_name}]")
                         else:
                             temp_text = f"[{channel_name}]"
@@ -87,12 +85,12 @@ async def __get_group_or_nick_name(
                 temp_text = member.nick or member.user.username
         else:
             temp_text = ""
-            if plugin_config.mc_qq_send_guild_name:
+            if plugin_config.send_guild_name:
                 guild = await bot.get_guild(guild_id=event.guild_id)
                 temp_text = f"[{guild.name}]"
-            if plugin_config.mc_qq_send_channel_name:
+            if plugin_config.send_channel_name:
                 channel = await bot.get_channel(channel_id=event.channel_id)
-                if plugin_config.mc_qq_send_guild_name:
+                if plugin_config.send_guild_name:
                     temp_text = temp_text.replace("]", f"丨{channel.name}]")
                 else:
                     temp_text = f"[{channel.name}]"
@@ -139,9 +137,9 @@ def __get_action_event_component(rcon_mode: bool, img_url: str, temp_text: str, 
     click_event = None
     temp_text = temp_text.replace("[", "[查看")
     if rcon_mode:
-        if plugin_config.mc_qq_rcon_hover_event_enable:
+        if plugin_config.rcon_hover_event_enable:
             hover_event = __get_rcon_hover_event_component(temp_text, color)
-        if plugin_config.mc_qq_rcon_click_action_enable:
+        if plugin_config.rcon_click_action_enable:
             click_event = __get_rcon_click_event_component(img_url)
     else:
         hover_event = __get_hover_event_component(temp_text, color)
@@ -178,7 +176,7 @@ async def __get_common_qq_msg_parsing(
             temp_text = "[图片]"
             temp_color = TextColor.AQUA
             img_url = msg.data["url"] if msg.data["url"].startswith("http") else f"https://{msg.data['url']}"
-            if plugin_config.mc_qq_chat_image_enable:
+            if plugin_config.chat_image_enable:
                 temp_text = str(ChatImageModComponent(url=img_url))
             else:
                 hover_event, click_event = __get_action_event_component(rcon_mode, img_url, temp_text, TextColor.BLUE)
@@ -234,7 +232,7 @@ async def __get_common_qq_msg_parsing(
 
         log_text += temp_text
 
-        if plugin_config.mc_qq_rcon_text_component_status == 2 and rcon_mode:
+        if plugin_config.rcon_text_component_status == 2 and rcon_mode:
             temp_component = RconTextComponent(
                 text=temp_text,
                 color=temp_color,
@@ -276,8 +274,8 @@ async def parse_qq_msg_to_base_model(
 
     # 是否发送群聊名称
     log_text = ""
-    if plugin_config.mc_qq_send_group_name or (
-            plugin_config.mc_qq_send_guild_name or plugin_config.mc_qq_send_channel_name
+    if plugin_config.send_group_name or (
+            plugin_config.send_guild_name or plugin_config.send_channel_name
     ):
         temp_group_name = await __get_group_or_nick_name(bot, event)
         message_list.append(MessageSegment.text(text=f"{temp_group_name} ", color=TextColor.GREEN))
@@ -289,8 +287,8 @@ async def parse_qq_msg_to_base_model(
     log_text += sender_nickname_text + " "
 
     # 消息 '说：'
-    message_list.append(MessageSegment.text(text=plugin_config.mc_qq_say_way, color=TextColor.WHITE))
-    log_text += plugin_config.mc_qq_say_way
+    message_list.append(MessageSegment.text(text=plugin_config.say_way, color=TextColor.WHITE))
+    log_text += plugin_config.say_way
 
     # 消息内容
     temp_message_list, msg_log_text = await __get_common_qq_msg_parsing(bot, event, False)
@@ -322,7 +320,7 @@ def __get_rcon_click_event_component(url: str) -> RconClickEvent:
     """
     return RconClickEvent(
         action=ClickAction.OPEN_URL,
-        url=url
+        value=url
     )
 
 
@@ -342,21 +340,21 @@ async def parse_qq_msg_to_rcon_model(
     :return: RconSendBody
     """
 
-    prefix_component = "[MC_QQ] " if plugin_config.mc_qq_rcon_text_component_status == 0 else RconTextComponent(
+    prefix_component = "[MC_QQ] " if plugin_config.rcon_text_component_status == 0 else RconTextComponent(
         text="[MC_QQ] ", color=TextColor.YELLOW).get_component()
     log_text = ""
 
     message_list = ["", prefix_component]
 
     # 是否发送群聊名称
-    if plugin_config.mc_qq_send_group_name or (
-            plugin_config.mc_qq_send_guild_name or plugin_config.mc_qq_send_channel_name
+    if plugin_config.send_group_name or (
+            plugin_config.send_guild_name or plugin_config.send_channel_name
     ):
         temp_group_name = await __get_group_or_nick_name(bot=bot, event=event)
 
         group_name_component = RconTextComponent(
             text=temp_group_name, color=TextColor.GREEN
-        ) if plugin_config.mc_qq_rcon_text_component_status == 0 else temp_group_name
+        ) if plugin_config.rcon_text_component_status == 0 else temp_group_name
 
         message_list.append(group_name_component.get_component())
         log_text += str(group_name_component)
@@ -364,7 +362,7 @@ async def parse_qq_msg_to_rcon_model(
     # 发送者昵称
     sender_nickname_text = await __get_group_or_nick_name(bot=bot, event=event, user_id=event.get_user_id())
     log_text += sender_nickname_text
-    if plugin_config.mc_qq_rcon_text_component_status != 0:
+    if plugin_config.rcon_text_component_status != 0:
         sender_nickname_component = RconTextComponent(
             text=sender_nickname_text, color=TextColor.GREEN
         ).get_component()
@@ -372,8 +370,8 @@ async def parse_qq_msg_to_rcon_model(
         sender_nickname_component = sender_nickname_text
     message_list.append(sender_nickname_component)
     # 说
-    message_list.append(plugin_config.mc_qq_say_way)
-    log_text += plugin_config.mc_qq_say_way
+    message_list.append(plugin_config.say_way)
+    log_text += plugin_config.say_way
 
     # 消息内容
 
