@@ -141,7 +141,7 @@ async def __send_common_to_target_server(
     """
     for server_name in server_list:
         if mc_bot := __get_mc_bot(server_name):
-            server_config = plugin_config.mc_qq_server_dict.get(server_name)
+            server_config = plugin_config.server_dict.get(server_name)
 
             send_temp_result = f"发送至服务器：{server_name} "
 
