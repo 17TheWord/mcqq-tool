@@ -56,7 +56,7 @@ def __onebot_msg_rule(event: Union[OneBotGroupMessageEvent, OneBotGuildMessageEv
 
 
 def mc_msg_rule(event: MinecraftEvent):
-    return event.server_name in plugin_config.mc_qq_server_dict.keys()
+    return event.server_name in plugin_config.server_dict.keys()
 
 
 def all_msg_rule(
@@ -87,7 +87,7 @@ async def __onebot_guild_role_admin(bot: OneBot, event: OneBotGuildMessageEvent)
             )
         )["roles"]
     )
-    return bool(roles & set(plugin_config.mc_qq_guild_admin_roles))
+    return bool(roles & set(plugin_config.guild_admin_roles))
 
 
 async def __qq_guild_role_admin(bot: QQBot, event: QQGuildMessageEvent):
@@ -100,7 +100,7 @@ async def __qq_guild_role_admin(bot: QQBot, event: QQGuildMessageEvent):
     guild_roles = await bot.get_guild_roles(guild_id=event.guild_id)
     tem_roles = []
     for role in guild_roles.roles:
-        if role.name in plugin_config.mc_qq_guild_admin_roles:
+        if role.name in plugin_config.guild_admin_roles:
             tem_roles.append(role.id)
     return bool(set(event.member.roles) & set(tem_roles))
 
