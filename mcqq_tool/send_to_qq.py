@@ -13,7 +13,7 @@ async def send_mc_msg_to_qq(server_name: str, msg_result: str):
             msg_result = f"[{server_name}] {msg_result}"
 
         for group in server.group_list:
-            if bot := __get_target_bot(group.bot_id):
+            if bot := __get_target_bot(group.bot_id, True, group.group_id, msg_result):
                 if group.adapter == "onebot":
                     bot: OneBot
                     await bot.send_group_msg(
@@ -30,7 +30,9 @@ async def send_mc_msg_to_qq(server_name: str, msg_result: str):
                     logger.error(f"[MC_QQ]丨未知的适配器: {group.adapter}")
 
         for guild in server.guild_list:
-            if bot := __get_target_bot(guild.bot_id):
+            if bot := __get_target_bot(
+                guild.bot_id, False, guild.channel_id, msg_result
+            ):
                 if guild.adapter == "onebot":
                     bot: OneBot
                     await bot.send_guild_channel_msg(
@@ -57,17 +59,18 @@ async def send_mc_msg_to_qq(server_name: str, msg_result: str):
 
 
 def __get_target_bot(
-    bot_id: str, is_group, target_group_id
+    bot_id: str, is_group: bool, target_group_id: str, message: str
 ) -> Union[QQBot, OneBot, None]:
+    target_type = "群聊" if is_group else "子频道"
     try:
         bot = get_bot(bot_id)
-    except KeyError as e:
+    except KeyError:
         logger.error(
-            f"[MC_QQ]丨未找到bot: {bot_id}，发送至{'群聊' if is_group else '子频道'} {target_group_id} 失败: {e}"
+            f'[MC_QQ]丨未找到bot: {bot_id}，发送至 [{target_type}@{target_group_id}] 失败: "{message}"'
         )
-    except ValueError as e:
+    except ValueError:
         logger.error(
-            f"[MC_QQ]丨当前没有任何Bot可用，发送至{'群聊' if is_group else '子频道'} {target_group_id} 失败: {e}"
+            f'[MC_QQ]丨当前没有任何Bot可用，发送至 [{target_type}@{target_group_id}] 失败: "{message}"'
         )
     else:
         return bot
