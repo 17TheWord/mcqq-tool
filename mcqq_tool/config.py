@@ -2,10 +2,10 @@
 配置文件
 """
 
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 
 from nonebot import get_plugin_config
-from pydantic import BaseModel, Field
+from pydantic import Field, BaseModel
 
 
 class Guild(BaseModel):
