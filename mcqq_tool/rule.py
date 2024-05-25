@@ -1,32 +1,29 @@
 from typing import Union
 
 from nonebot.permission import SUPERUSER
+from nonebot.adapters.qq import Bot as QQBot
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.permission import Permission
-from nonebot.adapters.minecraft import (
-    Event as MinecraftEvent,
-)
-from nonebot.adapters.onebot.v11 import (
-    Bot as OneBot,
-    GROUP_OWNER as ONEBOT_GROUP_OWNER,
-    GROUP_ADMIN as ONEBOT_GROUP_ADMIN,
-    GroupMessageEvent as OneBotGroupMessageEvent,
-)
-from nonebot.adapters.qq import (
-    Bot as QQBot,
-    GUILD_ADMIN as QQ_GUILD_ADMIN,
-    GUILD_OWNER as QQ_GUILD_OWNER,
-    GuildMessageEvent as QQGuildMessageEvent,
-    GroupAtMessageCreateEvent as QQGroupAtMessageCreateEvent,
-)
-from nonebot_plugin_guild_patch import (
-    GUILD_OWNER as ONEBOT_GUILD_OWNER,
-    GUILD_ADMIN as ONEBOT_GUILD_ADMIN,
-    GuildMessageEvent as OneBotGuildMessageEvent,
-)
+from nonebot.adapters.onebot.v11 import Bot as OneBot
+from nonebot.adapters.qq import GUILD_ADMIN as QQ_GUILD_ADMIN
+from nonebot.adapters.qq import GUILD_OWNER as QQ_GUILD_OWNER
+from nonebot.adapters.minecraft import Event as MinecraftEvent
+from nonebot.adapters.qq import GuildMessageEvent as QQGuildMessageEvent
+from nonebot_plugin_guild_patch import GUILD_ADMIN as ONEBOT_GUILD_ADMIN
+from nonebot_plugin_guild_patch import GUILD_OWNER as ONEBOT_GUILD_OWNER
+from nonebot.adapters.onebot.v11 import GROUP_ADMIN as ONEBOT_GROUP_ADMIN
+from nonebot.adapters.onebot.v11 import GROUP_OWNER as ONEBOT_GROUP_OWNER
+from nonebot_plugin_guild_patch import GuildMessageEvent as OneBotGuildMessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent as OneBotGroupMessageEvent
+from nonebot.adapters.qq import GroupAtMessageCreateEvent as QQGroupAtMessageCreateEvent
 
-from .model import QQ_GROUP_ID_LIST, QQ_GUILD_ID_LIST, ONEBOT_GUILD_ID_LIST, ONEBOT_GROUP_ID_LIST
 from .config import plugin_config
+from .model import (
+    QQ_GROUP_ID_LIST,
+    QQ_GUILD_ID_LIST,
+    ONEBOT_GROUP_ID_LIST,
+    ONEBOT_GUILD_ID_LIST,
+)
 
 
 def __qq_msg_rule(event: Union[QQGroupAtMessageCreateEvent, QQGuildMessageEvent]):

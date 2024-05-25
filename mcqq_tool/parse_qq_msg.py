@@ -1,24 +1,24 @@
-from typing import Union, Optional, Tuple, List
+from typing import List, Tuple, Union, Optional
+
+from nonebot.adapters.qq import Bot as QQBot
+from nonebot.adapters.onebot.v11 import Bot as OneBot
 from nonebot.adapters.minecraft import Message, MessageSegment
+from nonebot.adapters.qq import GuildMessageEvent as QQGuildMessageEvent
+from nonebot_plugin_guild_patch import GuildMessageEvent as OneBotGuildMessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent as OneBotGroupMessageEvent
+from nonebot.adapters.qq import GroupAtMessageCreateEvent as QQGroupAtMessageCreateEvent
 from nonebot.adapters.minecraft.model import (
     TextColor,
     ClickEvent,
     HoverEvent,
-    HoverAction,
     ClickAction,
+    HoverAction,
     BaseComponent,
-    RconHoverEvent,
     RconClickEvent,
+    RconHoverEvent,
     RconTextComponent,
-    ChatImageModComponent
+    ChatImageModComponent,
 )
-from nonebot.adapters.onebot.v11 import Bot as OneBot, GroupMessageEvent as OneBotGroupMessageEvent
-from nonebot.adapters.qq import (
-    Bot as QQBot,
-    GuildMessageEvent as QQGuildMessageEvent,
-    GroupAtMessageCreateEvent as QQGroupAtMessageCreateEvent,
-)
-from nonebot_plugin_guild_patch import GuildMessageEvent as OneBotGuildMessageEvent
 
 from .config import plugin_config
 

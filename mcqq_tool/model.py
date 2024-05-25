@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 QQ_GROUP_ID_LIST: Optional[Dict[str, List[str]]] = {}
 QQ_GUILD_ID_LIST: Optional[Dict[str, List[str]]] = {}

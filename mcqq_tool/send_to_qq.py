@@ -1,6 +1,7 @@
 from nonebot import logger, get_bot
+from nonebot.adapters.qq import Bot as QQBot
+from nonebot.adapters.qq import AuditException
 from nonebot.adapters.onebot.v11 import Bot as OneBot
-from nonebot.adapters.qq import Bot as QQBot, AuditException
 
 from .config import plugin_config
 
