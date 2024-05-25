@@ -79,14 +79,14 @@ async def __onebot_guild_role_admin(bot: OneBot, event: OneBotGuildMessageEvent)
     :param event: GuildMessageEvent
     :return: bool
     """
-    roles = set(
+    roles = {
         role["role_name"]
         for role in (
             await bot.get_guild_member_profile(
                 guild_id=event.guild_id, user_id=event.user_id
             )
         )["roles"]
-    )
+    }
     return bool(roles & set(plugin_config.guild_admin_roles))
 
 
