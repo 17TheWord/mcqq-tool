@@ -61,7 +61,7 @@ def mc_msg_rule(event: MinecraftEvent):
 
 def all_msg_rule(
         event: Union[
-            QQGroupAtMessageCreateEvent, OneBotGroupMessageEvent, QQGroupAtMessageCreateEvent, QQGuildMessageEvent
+            QQGroupAtMessageCreateEvent, OneBotGroupMessageEvent, OneBotGuildMessageEvent, QQGuildMessageEvent
         ]
 ):
     """
