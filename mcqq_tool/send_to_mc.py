@@ -173,6 +173,8 @@ async def __send_common_to_target_server(
                         await mc_bot.send_actionbar(message=command)
                     else:
                         await mc_bot.send_msg(message=command)
+                        send_temp_result += "结果：没有可用的命令发送，请检查Rcon或其他配置"
+                        continue
                     send_temp_result += "结果：成功\n"
 
             else:
