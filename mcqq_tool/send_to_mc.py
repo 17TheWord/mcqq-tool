@@ -151,17 +151,17 @@ async def __send_common_to_target_server(
                     if command_type == "title":
                         title, subtitle = command.split("\n") if "\n" in command else (command, "")
                         title_cmd = f'title @a title ["{title}"]'
-                        title_result = (await mc_bot.send_rcon_cmd(title_cmd))[0]
+                        title_result = (await mc_bot.send_rcon_cmd(command=title_cmd))[0]
                         if subtitle:
                             subtitle_cmd = f'title @a subtitle ["{subtitle}"]'
-                            title_result += (await mc_bot.send_rcon_cmd(subtitle_cmd))[0]
+                            title_result += (await mc_bot.send_rcon_cmd(command=subtitle_cmd))[0]
                         send_temp_result += f"结果：{title_result}"
                     elif command_type == "command":
-                        response = await mc_bot.send_rcon_cmd(command)
+                        response = await mc_bot.send_rcon_cmd(command=command)
                         send_temp_result += f"结果：{response[0]}\n"
                     else:
                         cmd = parse_qq_screen_cmd_to_rcon_model(command_type, command)
-                        response = await mc_bot.send_rcon_cmd(cmd)
+                        response = await mc_bot.send_rcon_cmd(command=cmd)
                         send_temp_result += f"结果：{response[0]}\n"
                 elif server_config.rcon_cmd and not mc_bot.rcon:
                     send_temp_result += "选择了Rcon发送命令，但无rcon可用，无法发送命令\n"
@@ -182,7 +182,7 @@ async def __send_common_to_target_server(
                     msg, text = await parse_qq_msg_to_rcon_model(bot=bot, event=event)
                     msg = msg.replace("'", '"')
                     send_temp_result += f"{text} "
-                    response = await mc_bot.send_rcon_cmd(f"tellraw @a {msg}")
+                    response = await mc_bot.send_rcon_cmd(command=f"tellraw @a {msg}")
                     send_temp_result += f"结果：{response[0]}\n"
 
                 elif server_config.rcon_msg and not mc_bot.rcon:
