@@ -149,11 +149,11 @@ async def __send_common_to_target_server(
 
                 if server_config.rcon_cmd and mc_bot.rcon:
                     if command_type == "title":
-                        title, subtitle = command.split("\n") if "\n" in command else (command, "")
-                        title_cmd = f'title @a title ["{title}"]'
+                        title = command.split("\n") if "\n" in command else (command, "")
+                        title_cmd = f'title @a title ["{title[0].strip()}"]'
                         title_result = (await mc_bot.send_rcon_cmd(command=title_cmd))[0]
-                        if subtitle:
-                            subtitle_cmd = f'title @a subtitle ["{subtitle}"]'
+                        if title[1]:
+                            subtitle_cmd = f'title @a subtitle ["{title[1].strip()}"]'
                             title_result += (await mc_bot.send_rcon_cmd(command=subtitle_cmd))[0]
                         send_temp_result += f"结果：{title_result}"
                     elif command_type == "command":
@@ -167,8 +167,8 @@ async def __send_common_to_target_server(
                     send_temp_result += "选择了Rcon发送命令，但无rcon可用，无法发送命令\n"
                 else:
                     if command_type == "title":
-                        title, subtitle = command.split("\n") if "\n" in command else (command, "")
-                        await mc_bot.send_title(title=title, subtitle=subtitle)
+                        title = command.split("\n") if "\n" in command else (command, "")
+                        await mc_bot.send_title(title=title[0].strip(), subtitle=title[1].strip())
                     elif command_type == "action_bar":
                         await mc_bot.send_actionbar(message=command)
                     else:
