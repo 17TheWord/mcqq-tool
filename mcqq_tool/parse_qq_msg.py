@@ -270,7 +270,7 @@ async def parse_qq_msg_to_base_model(
     :return: Message
     """
 
-    message_list = Message(MessageSegment.text(text="[MC_QQ] ", color=TextColor.YELLOW))
+    message_list = Message()
 
     # 是否发送群聊名称
     log_text = ""
