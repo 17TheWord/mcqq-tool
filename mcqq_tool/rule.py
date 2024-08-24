@@ -62,10 +62,24 @@ def all_msg_rule(
         ]
 ):
     """
-    检测是否为 OneBot 适配器 群聊消息
+    检测是否为 OneBot 适配器 群聊消息，同时过滤掉 本插件命令头 开头的消息
     :param event: GroupAtMessageCreateEvent | GuildMessageEvent
     :return: bool
     """
+    return not str(event.get_message()).startswith("mcc") and __onebot_msg_rule(event) or __qq_msg_rule(event)
+
+
+def all_cmd_rule(
+        event: Union[
+            QQGroupAtMessageCreateEvent, OneBotGroupMessageEvent, OneBotGuildMessageEvent, QQGuildMessageEvent
+        ]
+):
+    """
+    检测是否为 OneBot | QQ 适配器 群聊命令
+    :param event: GroupAtMessageCreateEvent | GuildMessageEvent
+    :return: bool
+    """
+    # TODO 动态命令头
     return __onebot_msg_rule(event) or __qq_msg_rule(event)
 
 
