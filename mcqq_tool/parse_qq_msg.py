@@ -49,7 +49,7 @@ async def __get_group_or_nick_name(
                     await bot.get_group_member_info(group_id=event.group_id, user_id=int(user_id), no_cache=True)
                 )["nickname"]
         else:
-            temp_text = f'[{(await bot.get_group_info(group_id=event.group_id))["group_name"]}] '
+            temp_text = f'[{(await bot.get_group_info(group_id=event.group_id))["group_name"]}]'
 
     elif isinstance(event, OneBotGuildMessageEvent) and isinstance(bot, OneBot):
         if user_id:
@@ -72,9 +72,9 @@ async def __get_group_or_nick_name(
                         channel_name = per_channel["channel_name"]
 
                         if plugin_config.send_guild_name:
-                            temp_text = temp_text.replace("]", f"丨{channel_name}] ")
+                            temp_text = temp_text.replace("]", f"丨{channel_name}]")
                         else:
-                            temp_text = f"[{channel_name}] "
+                            temp_text = f"[{channel_name}]"
                         break
     elif isinstance(event, QQGuildMessageEvent) and isinstance(bot, QQBot):
         if user_id:
@@ -87,13 +87,13 @@ async def __get_group_or_nick_name(
             temp_text = ""
             if plugin_config.send_guild_name:
                 guild = await bot.get_guild(guild_id=event.guild_id)
-                temp_text = f"[{guild.name}] "
+                temp_text = f"[{guild.name}]"
             if plugin_config.send_channel_name:
                 channel = await bot.get_channel(channel_id=event.channel_id)
                 if plugin_config.send_guild_name:
-                    temp_text = temp_text.replace("]", f"丨{channel.name}] ")
+                    temp_text = temp_text.replace("]", f"丨{channel.name}]")
                 else:
-                    temp_text = f"[{channel.name}] "
+                    temp_text = f"[{channel.name}]"
     elif isinstance(event, QQGroupAtMessageCreateEvent) and isinstance(bot, QQBot):
         # TODO 等待QQ机器人完善API
         temp_text = event.author.member_openid if user_id else event.group_openid
@@ -124,7 +124,7 @@ def __get_click_event_component(img_url):
     )
 
 
-def __get_action_event_component(rcon_mode: bool, img_url: str, temp_text: str, color: TextColor = TextColor.WHITE):
+def __get_action_event_component(rcon_mode: bool, img_url: str, temp_text: str, color: TextColor = None):
     """
     获取HoverEvent和ClickEvent组件
     :param rcon_mode:
@@ -174,7 +174,7 @@ async def __get_common_qq_msg_parsing(
 
         elif msg.type in ["image", "attachment"]:
             temp_text = "[图片]"
-            temp_color = TextColor.AQUA
+            temp_color = TextColor.LIGHT_PURPLE
             img_url = msg.data["url"] if msg.data["url"].startswith("http") else f"https://{msg.data['url']}"
             if plugin_config.chat_image_enable:
                 temp_text = str(ChatImageModComponent(url=img_url))
@@ -277,17 +277,17 @@ async def parse_qq_msg_to_base_model(
     if plugin_config.send_group_name or (
             plugin_config.send_guild_name or plugin_config.send_channel_name
     ):
-        temp_group_name = await __get_group_or_nick_name(bot, event)
-        message_list.append(MessageSegment.text(text=f"{temp_group_name} ", color=TextColor.GREEN))
+        temp_group_name = (await __get_group_or_nick_name(bot, event)) + " "
+        message_list.append(MessageSegment.text(text=temp_group_name, color=TextColor.AQUA))
         log_text += temp_group_name
 
     # 消息发送者昵称
-    sender_nickname_text = await __get_group_or_nick_name(bot, event, str(event.get_user_id()))
-    message_list.append(MessageSegment.text(text=f"{sender_nickname_text} ", color=TextColor.GREEN))
-    log_text += sender_nickname_text + " "
+    sender_nickname_text = (await __get_group_or_nick_name(bot, event, str(event.get_user_id())))
+    message_list.append(MessageSegment.text(text=sender_nickname_text, color=TextColor.GREEN))
+    log_text += sender_nickname_text
 
     # 消息 '说：'
-    message_list.append(MessageSegment.text(text=plugin_config.say_way, color=TextColor.WHITE))
+    message_list.append(MessageSegment.text(text=plugin_config.say_way))
     log_text += plugin_config.say_way
 
     # 消息内容
@@ -344,30 +344,28 @@ async def parse_qq_msg_to_rcon_model(
         text="[鹊桥] ", color=TextColor.YELLOW).get_component()
     log_text = ""
 
-    message_list = ["", prefix_component]
+    message_list = ["", prefix_component]  # Rcon 开头双引号
 
     # 是否发送群聊名称
     if plugin_config.send_group_name or (
             plugin_config.send_guild_name or plugin_config.send_channel_name
     ):
-        temp_group_name = await __get_group_or_nick_name(bot=bot, event=event)
+        temp_group_name = (await __get_group_or_nick_name(bot=bot, event=event)) + " "
 
-        group_name_component = RconTextComponent(
-            text=temp_group_name, color=TextColor.GREEN
-        ).get_component() if plugin_config.rcon_text_component_status != 0 else temp_group_name
+        group_name_component = temp_group_name if plugin_config.rcon_text_component_status == 0 else RconTextComponent(
+            text=temp_group_name, color=TextColor.AQUA
+        ).get_component()
 
         message_list.append(group_name_component)
         log_text += str(group_name_component)
 
     # 发送者昵称
-    sender_nickname_text = await __get_group_or_nick_name(bot=bot, event=event, user_id=event.get_user_id())
+    sender_nickname_text = (await __get_group_or_nick_name(bot=bot, event=event, user_id=event.get_user_id()))
     log_text += sender_nickname_text
-    if plugin_config.rcon_text_component_status != 0:
-        sender_nickname_component = RconTextComponent(
-            text=sender_nickname_text, color=TextColor.GREEN
-        ).get_component()
-    else:
-        sender_nickname_component = sender_nickname_text
+
+    sender_nickname_component = sender_nickname_text if plugin_config.rcon_text_component_status == 0 else RconTextComponent(
+        text=sender_nickname_text, color=TextColor.GREEN
+    ).get_component()
     message_list.append(sender_nickname_component)
     # 说
     message_list.append(plugin_config.say_way)
