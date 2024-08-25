@@ -49,7 +49,7 @@ async def __get_group_or_nick_name(
                     await bot.get_group_member_info(group_id=event.group_id, user_id=int(user_id), no_cache=True)
                 )["nickname"]
         else:
-            temp_text = f'[{(await bot.get_group_info(group_id=event.group_id))["group_name"]}]'
+            temp_text = f'[{(await bot.get_group_info(group_id=event.group_id))["group_name"]}] '
 
     elif isinstance(event, OneBotGuildMessageEvent) and isinstance(bot, OneBot):
         if user_id:
@@ -72,9 +72,9 @@ async def __get_group_or_nick_name(
                         channel_name = per_channel["channel_name"]
 
                         if plugin_config.send_guild_name:
-                            temp_text = temp_text.replace("]", f"丨{channel_name}]")
+                            temp_text = temp_text.replace("]", f"丨{channel_name}] ")
                         else:
-                            temp_text = f"[{channel_name}]"
+                            temp_text = f"[{channel_name}] "
                         break
     elif isinstance(event, QQGuildMessageEvent) and isinstance(bot, QQBot):
         if user_id:
@@ -87,13 +87,13 @@ async def __get_group_or_nick_name(
             temp_text = ""
             if plugin_config.send_guild_name:
                 guild = await bot.get_guild(guild_id=event.guild_id)
-                temp_text = f"[{guild.name}]"
+                temp_text = f"[{guild.name}] "
             if plugin_config.send_channel_name:
                 channel = await bot.get_channel(channel_id=event.channel_id)
                 if plugin_config.send_guild_name:
-                    temp_text = temp_text.replace("]", f"丨{channel.name}]")
+                    temp_text = temp_text.replace("]", f"丨{channel.name}] ")
                 else:
-                    temp_text = f"[{channel.name}]"
+                    temp_text = f"[{channel.name}] "
     elif isinstance(event, QQGroupAtMessageCreateEvent) and isinstance(bot, QQBot):
         # TODO 等待QQ机器人完善API
         temp_text = event.author.member_openid if user_id else event.group_openid
@@ -340,8 +340,8 @@ async def parse_qq_msg_to_rcon_model(
     :return: RconSendBody
     """
 
-    prefix_component = "[MC_QQ] " if plugin_config.rcon_text_component_status == 0 else RconTextComponent(
-        text="[MC_QQ] ", color=TextColor.YELLOW).get_component()
+    prefix_component = "[鹊桥] " if plugin_config.rcon_text_component_status == 0 else RconTextComponent(
+        text="[鹊桥] ", color=TextColor.YELLOW).get_component()
     log_text = ""
 
     message_list = ["", prefix_component]
@@ -354,9 +354,9 @@ async def parse_qq_msg_to_rcon_model(
 
         group_name_component = RconTextComponent(
             text=temp_group_name, color=TextColor.GREEN
-        ) if plugin_config.rcon_text_component_status == 0 else temp_group_name
+        ).get_component() if plugin_config.rcon_text_component_status != 0 else temp_group_name
 
-        message_list.append(group_name_component.get_component())
+        message_list.append(group_name_component)
         log_text += str(group_name_component)
 
     # 发送者昵称
