@@ -11,7 +11,7 @@ python = "^3.9"
 nonebot2 = "^2.2.1"
 nonebot-adapter-qq = "^1.4.2"
 nonebot-adapter-onebot = "^2.4.1"
-nonebot-adapter-minecraft = "^1.2.8"
+nonebot-adapter-minecraft = "^1.2.9"
 nonebot-plugin-guild-patch-remix = "^0.2.4"
 
 [tool.poetry.group.test.dependencies]
