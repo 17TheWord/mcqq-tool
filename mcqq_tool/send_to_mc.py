@@ -1,7 +1,9 @@
+import json
 from typing import List, Union, Callable, Optional, Awaitable
 
 from nonebot import logger, get_bot
 from nonebot.adapters.minecraft import Bot
+from nonebot.adapters.minecraft.utils import DataclassEncoder
 from nonebot.adapters.qq import Bot as QQBot
 from nonebot.internal.matcher import Matcher
 from nonebot.adapters.onebot.v11 import Bot as OneBot
@@ -182,9 +184,9 @@ async def __send_common_to_target_server(
 
                 if server_config.rcon_msg and mc_bot.rcon:
                     msg, text = await parse_qq_msg_to_rcon_model(bot=bot, event=event)
-                    msg = msg.replace("'", '"')
+                    msg_json_data = json.dumps(msg, cls=DataclassEncoder)
                     send_temp_result += f"{text} "
-                    response = await mc_bot.send_rcon_cmd(command=f"tellraw @a {msg}")
+                    response = await mc_bot.send_rcon_cmd(command=f"tellraw @a {msg_json_data}")
                     send_temp_result += f"结果：{response[0]}\n"
 
                 elif server_config.rcon_msg and not mc_bot.rcon:

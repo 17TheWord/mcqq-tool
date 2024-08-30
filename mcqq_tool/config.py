@@ -48,12 +48,8 @@ class Server(BaseModel):
 class MCQQConfig(BaseModel):
     """配置"""
 
-    # 是否发送群聊名称
+    # 是否发送群聊名称（包括频道）
     send_group_name: bool = False
-    # 是否发送频道名称
-    send_guild_name: bool = False
-    # 是否发送子频道名称
-    send_channel_name: bool = False
     # 是否显示服务器名称
     display_server_name: bool = False
     # 用户发言修饰
@@ -64,12 +60,6 @@ class MCQQConfig(BaseModel):
     guild_admin_roles: List[str] = ["频道主", "超级管理员"]
     # MC_QQ 启用 ChatImage MOD
     chat_image_enable: bool = False
-    # MC_QQ Rcon 启用 ClickAction
-    rcon_click_action_enable: bool = False
-    # MC_QQ Rcon 启用 HoverEvent
-    rcon_hover_event_enable: bool = False
-    # MC_QQ Rcon TextComponent 启用状态
-    rcon_text_component_status: int = 1
     # MC_QQ 命令白名单
     cmd_whitelist: List[str] = ["list", "tps", "banlist"]
 
@@ -81,11 +71,3 @@ class Config(BaseModel):
 
 
 plugin_config: MCQQConfig = get_plugin_config(Config).mc_qq
-
-__all__ = [
-    "Group",
-    "Guild",
-    "Server",
-    "Config",
-    "plugin_config",
-]

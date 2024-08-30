@@ -1,5 +1,6 @@
 from typing import List, Tuple, Union, Optional
 
+from nonebot.adapters.minecraft.utils import zip_dict
 from nonebot.adapters.qq import Bot as QQBot
 from nonebot.adapters.onebot.v11 import Bot as OneBot
 from nonebot.adapters.minecraft import Message, MessageSegment
@@ -14,8 +15,6 @@ from nonebot.adapters.minecraft.model import (
     ClickAction,
     HoverAction,
     BaseComponent,
-    RconClickEvent,
-    RconHoverEvent,
     RconTextComponent,
     ChatImageModComponent,
 )
@@ -50,7 +49,6 @@ async def __get_group_or_nick_name(
                 )["nickname"]
         else:
             temp_text = f'[{(await bot.get_group_info(group_id=event.group_id))["group_name"]}]'
-
     elif isinstance(event, OneBotGuildMessageEvent) and isinstance(bot, OneBot):
         if user_id:
             if event.user_id == user_id:
@@ -100,50 +98,24 @@ async def __get_group_or_nick_name(
     return temp_text
 
 
-def __get_hover_event_component(temp_text, color):
+def __get_action_event_component(rcon_model: bool, img_url: str, temp_text: str):
     """
-    获取HoverEvent组件
-    :param temp_text:
-    :return:
+    获取HoverEvent和ClickEvent组件
+    :param img_url: 图片链接
+    :param temp_text: 文本
+    :return: HoverEvent和ClickEvent组件
     """
-    return HoverEvent(
+    temp_text = temp_text.replace("[", "[查看")
+    if rcon_model:
+        return None, None
+    hover_event = HoverEvent(
         action=HoverAction.SHOW_TEXT,
-        base_component_list=[BaseComponent(text=temp_text, color=color)]
+        text=[BaseComponent(text=temp_text, color=TextColor.DARK_PURPLE)]
     )
-
-
-def __get_click_event_component(img_url):
-    """
-    获取ClickEvent组件
-    :param img_url:
-    :return:
-    """
-    return ClickEvent(
+    click_event = ClickEvent(
         action=ClickAction.OPEN_URL,
         value=img_url
     )
-
-
-def __get_action_event_component(rcon_mode: bool, img_url: str, temp_text: str, color: TextColor = None):
-    """
-    获取HoverEvent和ClickEvent组件
-    :param rcon_mode:
-    :param img_url:
-    :param temp_text:
-    :param color:
-    :return:
-    """
-    hover_event = None
-    click_event = None
-    temp_text = temp_text.replace("[", "[查看")
-    if rcon_mode:
-        if plugin_config.rcon_hover_event_enable:
-            hover_event = __get_rcon_hover_event_component(temp_text, color)
-        if plugin_config.rcon_click_action_enable:
-            click_event = __get_rcon_click_event_component(img_url)
-    else:
-        hover_event = __get_hover_event_component(temp_text, color)
-        click_event = __get_click_event_component(img_url)
     return hover_event, click_event
 
 
@@ -152,7 +124,7 @@ async def __get_common_qq_msg_parsing(
         event: Union[
             QQGuildMessageEvent, QQGroupAtMessageCreateEvent, OneBotGroupMessageEvent, OneBotGuildMessageEvent],
         rcon_mode: bool = False
-) -> Tuple[List[Union[str, Message]], str]:
+):
     """
     获取QQ消息解析后的消息列表和日志文本
     :param bot: Bot对象
@@ -168,9 +140,12 @@ async def __get_common_qq_msg_parsing(
     for msg in event.get_message():
         click_event = None
         hover_event = None
-        temp_color = TextColor.WHITE
+        temp_color = None
         if msg.type == "text":
-            temp_text = msg.data["text"].replace("\r", "").replace("\n", "\n * ")
+            temp_text = msg.data["text"].replace("\r", "").replace("\n", "\n * ") + " "
+            log_text += temp_text
+            message_list.append(temp_text)
+            continue
 
         elif msg.type in ["image", "attachment"]:
             temp_text = "[图片]"
@@ -178,23 +153,21 @@ async def __get_common_qq_msg_parsing(
             img_url = msg.data["url"] if msg.data["url"].startswith("http") else f"https://{msg.data['url']}"
             if plugin_config.chat_image_enable:
                 temp_text = str(ChatImageModComponent(url=img_url))
+                log_text += "[CICode:图片]"
+                message_list.append(temp_text)
+                continue
             else:
-                hover_event, click_event = __get_action_event_component(rcon_mode, img_url, temp_text, TextColor.BLUE)
+                hover_event, click_event = __get_action_event_component(rcon_mode, img_url, temp_text)
         elif msg.type == "video":
             temp_text = "[视频]"
             temp_color = TextColor.LIGHT_PURPLE
             img_url = msg.data["url"] if msg.data["url"].startswith("http") else f"https://{msg.data['url']}"
-            hover_event, click_event = __get_action_event_component(
-                rcon_mode,
-                img_url,
-                temp_text,
-                TextColor.DARK_PURPLE
-            )
+            hover_event, click_event = __get_action_event_component(rcon_mode, img_url, temp_text)
         elif msg.type == "share":
             temp_text = "[分享]"
             temp_color = TextColor.GOLD
             img_url = msg.data["url"] if msg.data["url"].startswith("http") else f"https://{msg.data['url']}"
-            hover_event, click_event = __get_action_event_component(rcon_mode, img_url, temp_text, TextColor.YELLOW)
+            hover_event, click_event = __get_action_event_component(rcon_mode, img_url, temp_text)
 
         # @用户 OneBot
         elif msg.type == "at":
@@ -232,16 +205,12 @@ async def __get_common_qq_msg_parsing(
 
         log_text += temp_text
 
-        if plugin_config.rcon_text_component_status == 2 and rcon_mode:
+        if rcon_mode:
             temp_component = RconTextComponent(
                 text=temp_text,
-                color=temp_color,
-                hover_event=hover_event,
-                click_event=click_event
-            ).get_component()
-            message_list.append(temp_component)
-        elif rcon_mode:
-            message_list.append(temp_text)
+                color=temp_color
+            )
+            message_list.append(zip_dict(temp_component))
         else:
             temp_component = MessageSegment.text(
                 text=temp_text,
@@ -271,12 +240,10 @@ async def parse_qq_msg_to_base_model(
     """
 
     message_list = Message()
+    log_text = ""
 
     # 是否发送群聊名称
-    log_text = ""
-    if plugin_config.send_group_name or (
-            plugin_config.send_guild_name or plugin_config.send_channel_name
-    ):
+    if plugin_config.send_group_name:
         temp_group_name = (await __get_group_or_nick_name(bot, event)) + " "
         message_list.append(MessageSegment.text(text=temp_group_name, color=TextColor.AQUA))
         log_text += temp_group_name
@@ -292,36 +259,12 @@ async def parse_qq_msg_to_base_model(
 
     # 消息内容
     temp_message_list, msg_log_text = await __get_common_qq_msg_parsing(bot, event, False)
+    temp_message_list: List[MessageSegment]
     log_text += msg_log_text
 
     message_list += Message(temp_message_list)
 
     return message_list, log_text
-
-
-def __get_rcon_hover_event_component(text: str, color: TextColor = TextColor.GOLD) -> RconHoverEvent:
-    """
-    获取 Rcon HoverEvent
-    :param text: 悬浮文本
-    :param color: 文本颜色
-    :return: 悬浮组件
-    """
-    return RconHoverEvent(
-        action=HoverAction.SHOW_TEXT,
-        contents=[RconTextComponent(text=text, color=color)],
-    )
-
-
-def __get_rcon_click_event_component(url: str) -> RconClickEvent:
-    """
-    获取 Rcon ClickEvent
-    :param url:
-    :return:
-    """
-    return RconClickEvent(
-        action=ClickAction.OPEN_URL,
-        value=url
-    )
 
 
 async def parse_qq_msg_to_rcon_model(
@@ -332,7 +275,7 @@ async def parse_qq_msg_to_rcon_model(
             OneBotGroupMessageEvent,
             OneBotGuildMessageEvent
         ]
-):
+) -> Tuple[List[Union[str]], str]:
     """
     解析 QQ 消息，转为 Rcon命令 模型
     :param bot: bot 对象
@@ -340,45 +283,37 @@ async def parse_qq_msg_to_rcon_model(
     :return: RconSendBody
     """
 
-    prefix_component = "[鹊桥] " if plugin_config.rcon_text_component_status == 0 else RconTextComponent(
-        text="[鹊桥] ", color=TextColor.YELLOW).get_component()
+    prefix_component = RconTextComponent(text="[鹊桥] ", color=TextColor.YELLOW)
     log_text = ""
 
-    message_list = ["", prefix_component]  # Rcon 开头双引号
+    message_list = ["", zip_dict(prefix_component)]  # Rcon 开头双引号
 
     # 是否发送群聊名称
-    if plugin_config.send_group_name or (
-            plugin_config.send_guild_name or plugin_config.send_channel_name
-    ):
+    if plugin_config.send_group_name:
         temp_group_name = (await __get_group_or_nick_name(bot=bot, event=event)) + " "
 
-        group_name_component = temp_group_name if plugin_config.rcon_text_component_status == 0 else RconTextComponent(
-            text=temp_group_name, color=TextColor.AQUA
-        ).get_component()
+        group_name_component = RconTextComponent(text=temp_group_name, color=TextColor.AQUA)
 
-        message_list.append(group_name_component)
-        log_text += str(group_name_component)
+        message_list.append(zip_dict(group_name_component))
+        log_text += temp_group_name
 
     # 发送者昵称
     sender_nickname_text = (await __get_group_or_nick_name(bot=bot, event=event, user_id=event.get_user_id()))
     log_text += sender_nickname_text
 
-    sender_nickname_component = sender_nickname_text if plugin_config.rcon_text_component_status == 0 else RconTextComponent(
-        text=sender_nickname_text, color=TextColor.GREEN
-    ).get_component()
-    message_list.append(sender_nickname_component)
+    sender_nickname_component = RconTextComponent(text=sender_nickname_text, color=TextColor.GREEN)
+    message_list.append(zip_dict(sender_nickname_component))
     # 说
     message_list.append(plugin_config.say_way)
     log_text += plugin_config.say_way
 
     # 消息内容
-
     temp_message_list, log_msgs = await __get_common_qq_msg_parsing(bot=bot, event=event, rcon_mode=True)
     log_text += log_msgs
 
     message_list = message_list + temp_message_list
 
-    return str(message_list), log_text
+    return message_list, log_text
 
 
 def parse_qq_screen_cmd_to_rcon_model(
@@ -395,30 +330,3 @@ def parse_qq_screen_cmd_to_rcon_model(
         return f'title @a actionbar "{command}"'
     else:
         return f'title @a "{command}"'
-
-
-def parse_qq_screen_cmd_to_base_model(
-        command_type: str,
-        command: str
-):
-    """
-    解析 QQ 消息，转为 websocket消息 模型
-    :param command_type: 命令类型
-    :param command: 命令内容
-    :return: 命令文本
-    """
-    if command_type == "action_bar":
-        return Message(MessageSegment.actionbar(text=f"[MC_QQ] {command}", color=TextColor.YELLOW))
-    elif command_type == "title":
-        title, subtitle = command.split("\n") if "\n" in command else (command, "")
-        return Message(MessageSegment.title(title=title, subtitle=subtitle))
-    else:
-        return Message(MessageSegment.text(text=f"[MC_QQ] {command}", color=TextColor.YELLOW))
-
-
-__all__ = [
-    "parse_qq_msg_to_rcon_model",
-    "parse_qq_msg_to_base_model",
-    "parse_qq_screen_cmd_to_rcon_model",
-    "parse_qq_screen_cmd_to_base_model"
-]
