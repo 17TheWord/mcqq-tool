@@ -1,3 +1,4 @@
+import re
 from typing import Union
 
 from nonebot import logger, get_bot
@@ -8,7 +9,8 @@ from nonebot.adapters.onebot.v11 import Bot as OneBot
 from .config import plugin_config
 
 
-async def send_mc_msg_to_qq(server_name: str, msg_result: str):
+async def send_mc_msg_to_qq(server_name: str, result: str):
+    msg_result = re.sub(r"[&§].", "", result)
     if server := plugin_config.server_dict.get(server_name):
         if plugin_config.display_server_name:
             msg_result = f"[{server_name}] {msg_result}"
@@ -32,7 +34,7 @@ async def send_mc_msg_to_qq(server_name: str, msg_result: str):
 
         for guild in server.guild_list:
             if bot := __get_target_bot(
-                guild.bot_id, False, guild.channel_id, msg_result
+                    guild.bot_id, False, guild.channel_id, msg_result
             ):
                 if guild.adapter == "onebot":
                     bot: OneBot
@@ -60,7 +62,7 @@ async def send_mc_msg_to_qq(server_name: str, msg_result: str):
 
 
 def __get_target_bot(
-    bot_id: str, is_group: bool, target_group_id: str, message: str
+        bot_id: str, is_group: bool, target_group_id: str, message: str
 ) -> Union[QQBot, OneBot, None]:
     target_type = "群聊" if is_group else "子频道"
     try:
