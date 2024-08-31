@@ -3,9 +3,9 @@
 """
 
 from typing import Dict, List, Optional, Union, Set, Any
-
+import importlib.util
 from nonebot import get_plugin_config
-from nonebot.drivers.websockets import logger
+from nonebot import logger
 from pydantic import Field, BaseModel, field_validator
 
 
@@ -88,11 +88,15 @@ class MCQQConfig(BaseModel):
         if isinstance(v, str):
             return {v}
         elif isinstance(v, list):
-            return set(v)
+            if all(isinstance(item, str) for item in v):
+                return set(v)
+            raise ValueError("All items in the list must be strings.")
         elif isinstance(v, set):
-            return v
+            if all(isinstance(item, str) for item in v):
+                return v
+            raise ValueError("All items in the set must be strings.")
         else:
-            raise ValueError("command_header must be str or list or set")
+            raise ValueError(f"Invalid type for command_header: {type(v)}. Expected str, list, or set.")
 
     @field_validator("command_priority")
     @classmethod
@@ -104,12 +108,11 @@ class MCQQConfig(BaseModel):
     @field_validator("rcon_result_to_image")
     @classmethod
     def validate_rcon_result_to_image(cls, v: bool) -> bool:
-        try:
-            import pillow
-            return True
-        except ImportError:
-            logger.warn("Pillow not installed, please install it to use rcon result to image")
+        is_pil_exists: bool = importlib.util.find_spec("PIL") is not None
+        if v and not is_pil_exists:
+            logger.warning("Pillow not installed, please install it to use rcon result to image.")
             return False
+        return v
 
 
 class Config(BaseModel):
