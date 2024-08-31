@@ -49,7 +49,7 @@ class Server(BaseModel):
 class MCQQConfig(BaseModel):
     """配置"""
 
-    command_header: Set[str] = {"mcc"}
+    command_header: Union[str, List[str], Set[str]] = {"mcc"}
     """命令头"""
 
     command_priority: int = 98
