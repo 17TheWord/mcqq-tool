@@ -18,14 +18,10 @@ if plugin_config.rcon_result_to_image:
 
 
 def get_title(s: str) -> Tuple[str, str]:
-    # 查找第一个换行符的索引
     newline_index = s.find("\n")
-
     if newline_index == -1:
-        # 如果没有找到换行符，则返回原字符串和一个空字符串的元组
         return s, ""
     else:
-        # 如果找到了换行符，则根据第一个换行符进行分割
         part1 = s[:newline_index]
         part2 = s[newline_index + 1:]
         return part1, part2
