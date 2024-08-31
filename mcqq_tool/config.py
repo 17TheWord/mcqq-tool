@@ -110,7 +110,7 @@ class MCQQConfig(BaseModel):
     def validate_priority(cls, v: int) -> int:
         if 1 <= v <= 98:
             return v
-        raise ValueError("mcqq command priority must be between 1 and 98")
+        raise ValueError("command priority must be between 1 and 98")
 
     @validator("rcon_result_to_image") if not PYDANTIC_V2 else field_validator("rcon_result_to_image")
     @classmethod
