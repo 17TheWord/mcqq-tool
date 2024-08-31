@@ -2,7 +2,7 @@
 配置文件
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union, Set, Any
 
 from nonebot import get_plugin_config
 from nonebot.drivers.websockets import logger
@@ -49,6 +49,9 @@ class Server(BaseModel):
 class MCQQConfig(BaseModel):
     """配置"""
 
+    command_header: Set[str] = {"mcc"}
+    """命令头"""
+
     command_priority: int = 98
     """命令优先级，1-98，消息优先级=命令优先级 - 1"""
 
@@ -78,6 +81,18 @@ class MCQQConfig(BaseModel):
 
     cmd_whitelist: List[str] = ["list", "tps", "banlist"]
     """命令白名单"""
+
+    @field_validator("command_header")
+    @classmethod
+    def validate_command_header(cls, v: Any) -> Set[str]:
+        if isinstance(v, str):
+            return {v}
+        elif isinstance(v, list):
+            return set(v)
+        elif isinstance(v, set):
+            return v
+        else:
+            raise ValueError("command_header must be str or list or set")
 
     @field_validator("command_priority")
     @classmethod
