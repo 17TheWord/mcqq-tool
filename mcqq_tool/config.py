@@ -2,11 +2,17 @@
 配置文件
 """
 
-from typing import Dict, List, Optional, Union, Set, Any
+from typing import Dict, List, Optional, Set, Any
 import importlib.util
 from nonebot import get_plugin_config
 from nonebot import logger
-from pydantic import Field, BaseModel, field_validator
+from nonebot.compat import PYDANTIC_V2
+from pydantic import Field, BaseModel
+
+if PYDANTIC_V2:
+    from pydantic import field_validator
+else:
+    from pydantic import validator
 
 
 class Guild(BaseModel):
@@ -49,7 +55,7 @@ class Server(BaseModel):
 class MCQQConfig(BaseModel):
     """配置"""
 
-    command_header: Union[str, List[str], Set[str]] = {"mcc"}
+    command_header: Any = {"mcc"}
     """命令头"""
 
     command_priority: int = 98
@@ -82,7 +88,8 @@ class MCQQConfig(BaseModel):
     cmd_whitelist: List[str] = ["list", "tps", "banlist"]
     """命令白名单"""
 
-    @field_validator("command_header")
+    @validator("command_header", pre=True, always=True) if not PYDANTIC_V2 else field_validator("command_header",
+                                                                                                mode="before")
     @classmethod
     def validate_command_header(cls, v: Any) -> Set[str]:
         if isinstance(v, str):
@@ -98,14 +105,14 @@ class MCQQConfig(BaseModel):
         else:
             raise ValueError(f"Invalid type for command_header: {type(v)}. Expected str, list, or set.")
 
-    @field_validator("command_priority")
+    @validator("command_priority") if not PYDANTIC_V2 else field_validator("command_priority")
     @classmethod
     def validate_priority(cls, v: int) -> int:
-        if 98 >= v >= 1:
+        if 1 <= v <= 98:
             return v
-        raise ValueError("mcqq command priority must bigger than 1 and smaller than 98")
+        raise ValueError("command priority must be between 1 and 98")
 
-    @field_validator("rcon_result_to_image")
+    @validator("rcon_result_to_image") if not PYDANTIC_V2 else field_validator("rcon_result_to_image")
     @classmethod
     def validate_rcon_result_to_image(cls, v: bool) -> bool:
         is_pil_exists: bool = importlib.util.find_spec("PIL") is not None
