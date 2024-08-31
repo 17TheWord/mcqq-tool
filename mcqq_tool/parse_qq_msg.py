@@ -1,7 +1,7 @@
 from typing import List, Tuple, Union, Optional
 
-from nonebot.adapters.minecraft.utils import zip_dict
 from nonebot.adapters.qq import Bot as QQBot
+from nonebot.adapters.minecraft.utils import zip_dict
 from nonebot.adapters.onebot.v11 import Bot as OneBot
 from nonebot.adapters.minecraft import Message, MessageSegment
 from nonebot.adapters.qq import GuildMessageEvent as QQGuildMessageEvent

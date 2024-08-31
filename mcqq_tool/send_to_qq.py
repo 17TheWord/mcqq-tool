@@ -1,4 +1,5 @@
 from typing import Union
+
 from nonebot import logger, get_bot
 from nonebot.adapters.qq import Bot as QQBot
 from nonebot.adapters.qq import AuditException
