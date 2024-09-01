@@ -4,7 +4,7 @@
 
 import importlib.util
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Any, Union
+from typing import Dict, List, Optional, Set, Any
 from nonebot import get_plugin_config
 from nonebot import logger
 from nonebot.compat import PYDANTIC_V2
@@ -56,7 +56,7 @@ class Server(BaseModel):
 class MCQQConfig(BaseModel):
     """配置"""
 
-    command_header: Union[str, List[str], Set[str]] = {"mcc"}
+    command_header: Any = {"mcc"}
     """命令头"""
 
     command_priority: int = 98
@@ -69,7 +69,6 @@ class MCQQConfig(BaseModel):
     """是否将 Rcon 命令执行结果转换为图片"""
 
     ttf_path: str = ""
-    """TTF 字体路径"""
 
     send_group_name: bool = False
     """是否发送群聊名称"""
