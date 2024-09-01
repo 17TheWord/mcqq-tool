@@ -5,6 +5,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+from mcqq_tool.config import plugin_config
+
 MC_COLORS = {
     "0": (0, 0, 0),  # &0 - 黑色
     "1": (0, 0, 170),  # &1 - 深蓝色
@@ -62,7 +64,7 @@ def wrap_text(draw: ImageDraw, text_segments: List[ColoredTextSegment], font: Im
     current_width = 0
 
     for segment in text_segments:
-        split_text = segment.text.split('\n')
+        split_text = segment.text.split("\n")
         for part in split_text:
             segment_width = draw.textlength(part, font=font)
             if current_width + segment_width > max_width:
@@ -88,7 +90,8 @@ def draw_result_image(text: str) -> bytes:
     draw = ImageDraw.Draw(image)
     font_size = 15
     padding = 10
-    font = ImageFont.truetype(Path(__file__).parent / "CascadiaCode.ttf", font_size)
+
+    font = ImageFont.truetype(plugin_config.ttf_path, font_size)
 
     # 解析带颜色的文本
     segments = parse_mc_colors(text)

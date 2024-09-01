@@ -2,8 +2,9 @@
 配置文件
 """
 
-from typing import Dict, List, Optional, Set, Any
 import importlib.util
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Any
 from nonebot import get_plugin_config
 from nonebot import logger
 from nonebot.compat import PYDANTIC_V2
@@ -67,6 +68,8 @@ class MCQQConfig(BaseModel):
     rcon_result_to_image: bool = False
     """是否将 Rcon 命令执行结果转换为图片"""
 
+    ttf_path: str = ""
+
     send_group_name: bool = False
     """是否发送群聊名称"""
 
@@ -120,6 +123,16 @@ class MCQQConfig(BaseModel):
             logger.warning("Pillow not installed, please install it to use rcon result to image.")
             return False
         return v
+
+    @validator("ttf_path") if not PYDANTIC_V2 else field_validator("ttf_path")
+    @classmethod
+    def validate_ttf_path(cls, v: str) -> Path:
+        if v and Path(v).exists():
+            logger.info(f"ttf_path {v} exists, use it.")
+            return Path(v)
+        elif v and not Path(v).exists():
+            logger.warning(f"ttf_path {v} not exists, use default ttf_path instead, please check your config.")
+        return Path(__file__).parent / "unifont-15.0.01.ttf"
 
 
 class Config(BaseModel):
