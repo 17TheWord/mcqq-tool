@@ -4,7 +4,7 @@
 
 import importlib.util
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Any
+from typing import Dict, List, Optional, Set, Any, Union
 from nonebot import get_plugin_config
 from nonebot import logger
 from nonebot.compat import PYDANTIC_V2
@@ -59,24 +59,24 @@ class MCQQConfig(BaseModel):
     command_header: Any = {"mcc"}
     """命令头"""
 
-    command_priority: int = 98
+    command_priority: Optional[int] = 98
     """命令优先级，1-98，消息优先级=命令优先级 - 1"""
 
-    command_block: bool = True
+    command_block: Optional[bool] = True
     """命令消息是否阻断后续消息"""
 
-    rcon_result_to_image: bool = False
+    rcon_result_to_image: Optional[bool] = False
     """是否将 Rcon 命令执行结果转换为图片"""
 
-    ttf_path: str = ""
+    ttf_path: Optional[Union[str, Path]] = None
 
-    send_group_name: bool = False
+    send_group_name: Optional[bool] = False
     """是否发送群聊名称"""
 
-    display_server_name: bool = False
+    display_server_name: Optional[bool] = False
     """是否发送服务器名称"""
 
-    say_way: str = "说："
+    say_way: Optional[str] = "说："
     """用户发言修饰"""
 
     server_dict: Dict[str, Server] = Field(default_factory=dict)
@@ -85,7 +85,7 @@ class MCQQConfig(BaseModel):
     guild_admin_roles: List[str] = ["频道主", "超级管理员"]
     """频道管理员角色"""
 
-    chat_image_enable: bool = False
+    chat_image_enable: Optional[bool] = False
     """是否启用 ChatImage MOD"""
 
     cmd_whitelist: List[str] = ["list", "tps", "banlist"]
