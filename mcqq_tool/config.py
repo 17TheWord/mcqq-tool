@@ -4,11 +4,11 @@
 
 import importlib.util
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Any, Union
-from nonebot import get_plugin_config
-from nonebot import logger
-from nonebot.compat import PYDANTIC_V2
+from typing import Any, Set, Dict, List, Optional
+
 from pydantic import Field, BaseModel
+from nonebot.compat import PYDANTIC_V2
+from nonebot import logger, get_plugin_config
 
 if PYDANTIC_V2:
     from pydantic import field_validator
@@ -19,38 +19,38 @@ else:
 class Guild(BaseModel):
     """频道配置"""
 
-    # 频道ID，QQ适配器不需要频道ID
     guild_id: Optional[str] = None
-    # 子频道ID
+    """频道号"""
     channel_id: str
-    # 适配器类型
+    """子频道号"""
     adapter: Optional[str] = None
-    # Bot ID 优先使用所选Bot发送消息
+    """适配器类型"""
     bot_id: Optional[str] = None
+    """Bot ID 优先使用所选Bot发送消息"""
 
 
 class Group(BaseModel):
     """群配置"""
 
-    # 群ID
     group_id: str
-    # 适配器类型
+    """群号"""
     adapter: Optional[str] = None
-    # Bot ID
+    """适配器类型"""
     bot_id: Optional[str] = None
+    """Bot ID 优先使用所选Bot发送消息"""
 
 
 class Server(BaseModel):
     """服务器配置"""
 
-    # 服务器群列表
     group_list: List[Group] = []
-    # 服务器频道列表
+    """群列表"""
     guild_list: List[Guild] = []
-    # 是否开启 Rcon 消息
+    """频道列表"""
     rcon_msg: bool = False
-    # 是否开启 Rcon 命令
+    """是否用Rcon发送消息"""
     rcon_cmd: bool = False
+    """是否用Rcon执行命令"""
 
 
 class MCQQConfig(BaseModel):
@@ -59,24 +59,25 @@ class MCQQConfig(BaseModel):
     command_header: Any = {"mcc"}
     """命令头"""
 
-    command_priority: Optional[int] = 98
+    command_priority: int = 98
     """命令优先级，1-98，消息优先级=命令优先级 - 1"""
 
-    command_block: Optional[bool] = True
+    command_block: bool = True
     """命令消息是否阻断后续消息"""
 
-    rcon_result_to_image: Optional[bool] = False
+    rcon_result_to_image: bool = False
     """是否将 Rcon 命令执行结果转换为图片"""
 
-    ttf_path: Optional[Union[str, Path]] = None
+    ttf_path: Optional[Path] = Path(__file__).parent / "unifont-15.0.01.ttf"
+    """字体路径"""
 
-    send_group_name: Optional[bool] = False
+    send_group_name: bool = False
     """是否发送群聊名称"""
 
-    display_server_name: Optional[bool] = False
+    display_server_name: bool = False
     """是否发送服务器名称"""
 
-    say_way: Optional[str] = "说："
+    say_way: str = "说："
     """用户发言修饰"""
 
     server_dict: Dict[str, Server] = Field(default_factory=dict)
@@ -85,14 +86,15 @@ class MCQQConfig(BaseModel):
     guild_admin_roles: List[str] = ["频道主", "超级管理员"]
     """频道管理员角色"""
 
-    chat_image_enable: Optional[bool] = False
+    chat_image_enable: bool = False
     """是否启用 ChatImage MOD"""
 
     cmd_whitelist: List[str] = ["list", "tps", "banlist"]
     """命令白名单"""
 
-    @validator("command_header", pre=True, always=True) if not PYDANTIC_V2 else field_validator("command_header",
-                                                                                                mode="before")
+    @validator(
+        "command_header", pre=True, always=True
+    ) if not PYDANTIC_V2 else field_validator("command_header", mode="before")
     @classmethod
     def validate_command_header(cls, v: Any) -> Set[str]:
         if isinstance(v, str):
@@ -108,14 +110,18 @@ class MCQQConfig(BaseModel):
         else:
             raise ValueError(f"Invalid type for command_header: {type(v)}. Expected str, list, or set.")
 
-    @validator("command_priority") if not PYDANTIC_V2 else field_validator("command_priority")
+    @validator(
+        "command_priority", pre=True, always=True
+    ) if not PYDANTIC_V2 else field_validator("command_priority", mode="before")
     @classmethod
     def validate_priority(cls, v: int) -> int:
         if 1 <= v <= 98:
             return v
         raise ValueError("command priority must be between 1 and 98")
 
-    @validator("rcon_result_to_image") if not PYDANTIC_V2 else field_validator("rcon_result_to_image")
+    @validator(
+        "rcon_result_to_image", pre=True, always=True
+    ) if not PYDANTIC_V2 else field_validator("rcon_result_to_image", mode="before")
     @classmethod
     def validate_rcon_result_to_image(cls, v: bool) -> bool:
         is_pil_exists: bool = importlib.util.find_spec("PIL") is not None
@@ -124,14 +130,18 @@ class MCQQConfig(BaseModel):
             return False
         return v
 
-    @validator("ttf_path") if not PYDANTIC_V2 else field_validator("ttf_path")
+    @validator(
+        "ttf_path", pre=True, always=True
+    ) if not PYDANTIC_V2 else field_validator("ttf_path", mode="before")
     @classmethod
     def validate_ttf_path(cls, v: str) -> Path:
-        if v and Path(v).exists():
-            logger.info(f"ttf_path {v} exists, use it.")
-            return Path(v)
-        elif v and not Path(v).exists():
-            logger.warning(f"ttf_path {v} not exists, use default ttf_path instead, please check your config.")
+        if v:
+            if Path(v).exists():
+                logger.info(f"ttf_path {v} exists, use it.")
+                return Path(v)
+            logger.warning(f"ttf_path {v} not exists, please check your config.")
+        else:
+            logger.warning("ttf_path not set, use default.")
         return Path(__file__).parent / "unifont-15.0.01.ttf"
 
 
