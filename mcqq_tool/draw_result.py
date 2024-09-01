@@ -55,28 +55,30 @@ def parse_mc_colors(text) -> List[ColoredTextSegment]:
     return segments
 
 
-# 自动换行处理
-def wrap_text(draw: ImageDraw, text_segments: List[ColoredTextSegment], font: ImageFont, max_width: int) -> \
-        List[
-            List[ColoredTextSegment]]:
+def wrap_text(draw: ImageDraw, text_segments: List[ColoredTextSegment], font: ImageFont, max_width: int) -> List[
+    List[ColoredTextSegment]]:
     lines = []
     current_line = []
     current_width = 0
 
     for segment in text_segments:
-        segment_width = draw.textlength(segment.text, font=font)
-        if current_width + segment_width > max_width:
-            if current_line:
+        split_text = segment.text.split('\n')
+        for part in split_text:
+            segment_width = draw.textlength(part, font=font)
+            if current_width + segment_width > max_width:
+                if current_line:
+                    lines.append(current_line)
+                current_line = [ColoredTextSegment(part, segment.get_color())]
+                current_width = segment_width
+            else:
+                current_line.append(ColoredTextSegment(part, segment.get_color()))
+                current_width += segment_width
+            if len(split_text) > 1:
                 lines.append(current_line)
-            current_line = [segment]
-            current_width = segment_width
-        else:
-            current_line.append(segment)
-            current_width += segment_width
-
+                current_line = []
+                current_width = 0
     if current_line:
         lines.append(current_line)
-
     return lines
 
 
@@ -86,7 +88,7 @@ def draw_result_image(text: str) -> bytes:
     draw = ImageDraw.Draw(image)
     font_size = 15
     padding = 10
-    font = ImageFont.truetype("CascadiaCode.ttf", font_size)
+    font = ImageFont.truetype(Path(__file__).parent / "CascadiaCode.ttf", font_size)
 
     # 解析带颜色的文本
     segments = parse_mc_colors(text)
