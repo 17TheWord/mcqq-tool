@@ -59,6 +59,9 @@ class MCQQConfig(BaseModel):
     command_header: Any = {"mcc"}
     """命令头"""
 
+    ignore_message_header: Any = {""}
+    """忽略消息头"""
+
     command_priority: int = 98
     """命令优先级，1-98，消息优先级=命令优先级 - 1"""
 
@@ -109,6 +112,24 @@ class MCQQConfig(BaseModel):
             raise ValueError("All items in the set must be strings.")
         else:
             raise ValueError(f"Invalid type for command_header: {type(v)}. Expected str, list, or set.")
+
+    @validator(
+        "ignore_message_header", pre=True, always=True
+    ) if not PYDANTIC_V2 else field_validator("ignore_message_header", mode="before")
+    @classmethod
+    def validate_ignore_message_header(cls, v: Any) -> Set[str]:
+        if isinstance(v, str):
+            return {v}
+        elif isinstance(v, list):
+            if all(isinstance(item, str) for item in v):
+                return set(v)
+            raise ValueError("All items in the list must be strings.")
+        elif isinstance(v, set):
+            if all(isinstance(item, str) for item in v):
+                return v
+            raise ValueError("All items in the set must be strings.")
+        else:
+            raise ValueError(f"Invalid type for ignore_message_header: {type(v)}. Expected str, list, or set.")
 
     @validator(
         "command_priority", pre=True, always=True

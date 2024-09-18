@@ -66,6 +66,8 @@ def all_msg_rule(
     :param event: GroupAtMessageCreateEvent | GuildMessageEvent
     :return: bool
     """
+    if str(event.get_message())[0] in plugin_config.ignore_message_header:
+        return False
     return __onebot_msg_rule(event) or __qq_msg_rule(event)
 
 
