@@ -171,7 +171,10 @@ async def __get_common_qq_msg_parsing(
 
         # @用户 OneBot
         elif msg.type == "at":
-            temp_text = f"@{await __get_group_or_nick_name(bot, event, msg.data['qq'])}"
+            if msg.data["qq"] == "all":
+                temp_text = "@全体成员"
+            else:
+                temp_text = f"@{await __get_group_or_nick_name(bot, event, msg.data['qq'])}"
             temp_color = TextColor.GREEN
 
         # @用户 QQ
@@ -187,7 +190,7 @@ async def __get_common_qq_msg_parsing(
             temp_color = TextColor.GREEN
 
         # @全体成员
-        elif msg.type in ["mention_everyone", "all"]:
+        elif msg.type == "mention_everyone":
             temp_text = "@全体成员"
             temp_color = TextColor.GREEN
 
