@@ -3,6 +3,7 @@
 """
 
 import importlib.util
+import json
 from pathlib import Path
 from typing import Any, Set, Dict, List, Optional
 
@@ -62,6 +63,12 @@ class MCQQConfig(BaseModel):
     ignore_message_header: Any = {""}
     """忽略消息头"""
 
+    ignore_word_file: Optional[str] = "./src/mc_qq_ignore_word_list.json"
+    """敏感词文件路径"""
+
+    ignore_word_list: Set[str] = set([])
+    """忽略的敏感词列表"""
+
     command_priority: int = 98
     """命令优先级，1-98，消息优先级=命令优先级 - 1"""
 
@@ -92,7 +99,7 @@ class MCQQConfig(BaseModel):
     chat_image_enable: bool = False
     """是否启用 ChatImage MOD"""
 
-    cmd_whitelist: List[str] = ["list", "tps", "banlist"]
+    cmd_whitelist: Set[str] = {"list", "tps", "banlist"}
     """命令白名单"""
 
     @validator(
@@ -130,6 +137,27 @@ class MCQQConfig(BaseModel):
             raise ValueError("All items in the set must be strings.")
         else:
             raise ValueError(f"Invalid type for ignore_message_header: {type(v)}. Expected str, list, or set.")
+
+    @validator(
+        "ignore_word_list", pre=True, always=True
+    ) if not PYDANTIC_V2 else field_validator("ignore_word_list", mode="before")
+    @classmethod
+    def validate_ignore_word_list(cls, v: Any):
+        cls.ignore_word_list = set([])
+        if Path(cls.ignore_word_file).exists():
+            logger.info("ignore_word_file exists, use it.")
+            with open(cls.ignore_word_file, encoding="utf-8") as f:
+                json_data = json.load(f)
+                if word_list := json_data.get("words"):
+                    if not isinstance(word_list, list):
+                        logger.warning("Invalid ignore_word_file format, please check your config.")
+                        return
+                    cls.ignore_word_list = set(word_list)
+                    logger.info(f"Loaded {len(cls.ignore_word_list)} words from ignore_word_file.")
+                    return
+                logger.warning("Invalid ignore_word_file format, please check your config.")
+                return
+        logger.info("ignore_word_file not exists, use default.")
 
     @validator(
         "command_priority", pre=True, always=True
