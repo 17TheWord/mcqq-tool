@@ -7,7 +7,7 @@ from nonebot.internal.permission import Permission
 from nonebot.adapters.onebot.v11 import Bot as OneBot
 from nonebot.adapters.qq import GUILD_ADMIN as QQ_GUILD_ADMIN
 from nonebot.adapters.qq import GUILD_OWNER as QQ_GUILD_OWNER
-from nonebot.adapters.minecraft import Event as MinecraftEvent
+from nonebot.adapters.minecraft import Event as MinecraftEvent, MessageEvent as MinecraftMessageEvent
 from nonebot.adapters.qq import GuildMessageEvent as QQGuildMessageEvent
 from nonebot_plugin_guild_patch import GUILD_ADMIN as ONEBOT_GUILD_ADMIN
 from nonebot_plugin_guild_patch import GUILD_OWNER as ONEBOT_GUILD_OWNER
@@ -53,6 +53,9 @@ def __onebot_msg_rule(event: Union[OneBotGroupMessageEvent, OneBotGuildMessageEv
 
 
 def mc_msg_rule(event: MinecraftEvent):
+    if isinstance(event, MinecraftMessageEvent):
+        if plugin_config.ignore_word_list:
+            return not any(word in str(event.get_message()) for word in plugin_config.ignore_word_list)
     return event.server_name in plugin_config.server_dict.keys()
 
 
