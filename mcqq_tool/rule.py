@@ -23,6 +23,7 @@ from .model import (
     QQ_GUILD_ID_LIST,
     ONEBOT_GROUP_ID_LIST,
     ONEBOT_GUILD_ID_LIST,
+    IGNORE_WORD_LIST
 )
 
 
@@ -55,7 +56,7 @@ def __onebot_msg_rule(event: Union[OneBotGroupMessageEvent, OneBotGuildMessageEv
 def mc_msg_rule(event: MinecraftEvent):
     if isinstance(event, MinecraftMessageEvent):
         if plugin_config.ignore_word_list:
-            return not any(word in str(event.get_message()) for word in plugin_config.ignore_word_list)
+            return not any(word in str(event.get_message()) for word in IGNORE_WORD_LIST)
     return event.server_name in plugin_config.server_dict.keys()
 
 

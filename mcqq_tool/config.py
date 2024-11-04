@@ -16,6 +16,8 @@ if PYDANTIC_V2:
 else:
     from pydantic import validator
 
+from .model import IGNORE_WORD_LIST
+
 
 class Guild(BaseModel):
     """频道配置"""
@@ -102,86 +104,81 @@ class MCQQConfig(BaseModel):
     cmd_whitelist: Set[str] = {"list", "tps", "banlist"}
     """命令白名单"""
 
-    @validator(
-        "command_header", pre=True, always=True
-    ) if not PYDANTIC_V2 else field_validator("command_header", mode="before")
+    @classmethod
+    def _get_common_set(
+        cls, v: Any, configuration_name: str, default_config: Set = set()
+    ):
+        if isinstance(v, str):
+            logger.info(f"{configuration_name} is a string, use it as is.")
+            return {v}
+        elif isinstance(v, list | set):
+            logger.info(f"{configuration_name} is a list, loaded {len(v)} items.")
+            return set(v)
+        else:
+            logger.warning(
+                f"Invalid type for {configuration_name}: {type(v)}, use empty list."
+            )
+            return default_config
+
+    @(
+        field_validator("command_header", mode="before")
+        if PYDANTIC_V2
+        else validator("command_header", pre=True, always=True)
+    )
     @classmethod
     def validate_command_header(cls, v: Any) -> Set[str]:
-        if isinstance(v, str):
-            return {v}
-        elif isinstance(v, list):
-            if all(isinstance(item, str) for item in v):
-                return set(v)
-            raise ValueError("All items in the list must be strings.")
-        elif isinstance(v, set):
-            if all(isinstance(item, str) for item in v):
-                return v
-            raise ValueError("All items in the set must be strings.")
-        else:
-            raise ValueError(f"Invalid type for command_header: {type(v)}. Expected str, list, or set.")
+        return cls._get_common_set(v, "command_header", {"mcqq"})
 
-    @validator(
-        "ignore_message_header", pre=True, always=True
-    ) if not PYDANTIC_V2 else field_validator("ignore_message_header", mode="before")
+    @(
+        field_validator("ignore_message_header", mode="before")
+        if PYDANTIC_V2
+        else validator("ignore_message_header", pre=True, always=True)
+    )
     @classmethod
     def validate_ignore_message_header(cls, v: Any) -> Set[str]:
-        if isinstance(v, str):
-            return {v}
-        elif isinstance(v, list):
-            if all(isinstance(item, str) for item in v):
-                return set(v)
-            raise ValueError("All items in the list must be strings.")
-        elif isinstance(v, set):
-            if all(isinstance(item, str) for item in v):
-                return v
-            raise ValueError("All items in the set must be strings.")
-        else:
-            raise ValueError(f"Invalid type for ignore_message_header: {type(v)}. Expected str, list, or set.")
+        return cls._get_common_set(v, "ignore_message_header")
 
-    @validator(
-        "ignore_word_list", pre=True, always=True
-    ) if not PYDANTIC_V2 else field_validator("ignore_word_list", mode="before")
+    @(
+        field_validator("ignore_word_list", mode="before")
+        if PYDANTIC_V2
+        else validator("ignore_word_list", pre=True, always=True)
+    )
     @classmethod
     def validate_ignore_word_list(cls, v: Any):
-        cls.ignore_word_list = set()
-        if Path(cls.ignore_word_file).exists():
-            logger.info("ignore_word_file exists, use it.")
-            with open(cls.ignore_word_file, encoding="utf-8") as f:
-                json_data = json.load(f)
-                if word_list := json_data.get("words"):
-                    if not isinstance(word_list, list):
-                        logger.warning("Invalid ignore_word_file format, please check your config.")
-                        return
-                    cls.ignore_word_list = set(word_list)
-                    logger.info(f"Loaded {len(cls.ignore_word_list)} words from ignore_word_file.")
-                    return
-                logger.warning("Invalid ignore_word_file format, please check your config.")
-                return
-        logger.info("ignore_word_file not exists, use default.")
+        return cls._get_common_set(v, "ignore_word_list")
 
-    @validator(
-        "command_priority", pre=True, always=True
-    ) if not PYDANTIC_V2 else field_validator("command_priority", mode="before")
+    @(
+        field_validator("command_priority", mode="before")
+        if PYDANTIC_V2
+        else validator("command_priority", pre=True, always=True)
+    )
     @classmethod
     def validate_priority(cls, v: int) -> int:
         if 1 <= v <= 98:
             return v
-        raise ValueError("command priority must be between 1 and 98")
+        logger.warning("Invalid command_priority, use default 98.")
+        return 98
 
-    @validator(
-        "rcon_result_to_image", pre=True, always=True
-    ) if not PYDANTIC_V2 else field_validator("rcon_result_to_image", mode="before")
+    @(
+        field_validator("rcon_result_to_image", mode="before")
+        if PYDANTIC_V2
+        else validator("rcon_result_to_image", pre=True, always=True)
+    )
     @classmethod
     def validate_rcon_result_to_image(cls, v: bool) -> bool:
         is_pil_exists: bool = importlib.util.find_spec("PIL") is not None
         if v and not is_pil_exists:
-            logger.warning("Pillow not installed, please install it to use rcon result to image.")
+            logger.warning(
+                "Pillow not installed, please install it to use rcon result to image."
+            )
             return False
         return v
 
-    @validator(
-        "ttf_path", pre=True, always=True
-    ) if not PYDANTIC_V2 else field_validator("ttf_path", mode="before")
+    @(
+        field_validator("ttf_path", mode="before")
+        if PYDANTIC_V2
+        else validator("ttf_path", pre=True, always=True)
+    )
     @classmethod
     def validate_ttf_path(cls, v: str) -> Path:
         if v:
@@ -197,7 +194,28 @@ class MCQQConfig(BaseModel):
 class Config(BaseModel):
     """配置项"""
 
-    mc_qq: MCQQConfig = MCQQConfig()
+    mc_qq: MCQQConfig
 
 
 plugin_config: MCQQConfig = get_plugin_config(Config).mc_qq
+
+if plugin_config.ignore_word_list:
+    IGNORE_WORD_LIST.add(*plugin_config.ignore_word_list)
+    logger.info("加载敏感词列表成功")
+else:
+    logger.info("敏感词列表为空，不加载")
+
+if Path(plugin_config.ignore_word_file).exists():
+    try:
+        with open(plugin_config.ignore_word_file, encoding="utf-8") as f:
+            json_data = json.load(f)
+            words: Set | List = json_data.get("words", [])
+            if words:
+                IGNORE_WORD_LIST.add(*words)
+                logger.info(f"加载敏感词文件成功，敏感词数量为 {len(words)}")
+            else:
+                logger.warning("敏感词文件为空，不加载")
+    except Exception as e:
+        logger.error(f"加载敏感词文件失败，请检查文件格式，错误信息为：{e}")
+else:
+    logger.info("敏感词文件不存在，不加载")
