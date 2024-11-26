@@ -340,18 +340,31 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "fastapi"
+<<<<<<< HEAD
 version = "0.115.5"
+=======
+version = "0.115.2"
+>>>>>>> b45b78a874939d6f73e6b441888d33927a5433c5
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 optional = false
 python-versions = ">=3.8"
 files = [
+<<<<<<< HEAD
     {file = "fastapi-0.115.5-py3-none-any.whl", hash = "sha256:596b95adbe1474da47049e802f9a65ab2ffa9c2b07e7efee70eb8a66c9f2f796"},
     {file = "fastapi-0.115.5.tar.gz", hash = "sha256:0e7a4d0dc0d01c68df21887cce0945e72d3c48b9f4f79dfe7a7d53aa08fbb289"},
+=======
+    {file = "fastapi-0.115.2-py3-none-any.whl", hash = "sha256:61704c71286579cc5a598763905928f24ee98bfcc07aabe84cfefb98812bbc86"},
+    {file = "fastapi-0.115.2.tar.gz", hash = "sha256:3995739e0b09fa12f984bce8fa9ae197b35d433750d3d312422d846e283697ee"},
+>>>>>>> b45b78a874939d6f73e6b441888d33927a5433c5
 ]
 
 [package.dependencies]
 pydantic = ">=1.7.4,<1.8 || >1.8,<1.8.1 || >1.8.1,<2.0.0 || >2.0.0,<2.0.1 || >2.0.1,<2.1.0 || >2.1.0,<3.0.0"
+<<<<<<< HEAD
 starlette = ">=0.40.0,<0.42.0"
+=======
+starlette = ">=0.37.2,<0.41.0"
+>>>>>>> b45b78a874939d6f73e6b441888d33927a5433c5
 typing-extensions = ">=4.8.0"
 
 [package.extras]
@@ -1318,13 +1331,22 @@ files = [
 
 [[package]]
 name = "starlette"
+<<<<<<< HEAD
 version = "0.41.3"
+=======
+version = "0.40.0"
+>>>>>>> b45b78a874939d6f73e6b441888d33927a5433c5
 description = "The little ASGI library that shines."
 optional = false
 python-versions = ">=3.8"
 files = [
+<<<<<<< HEAD
     {file = "starlette-0.41.3-py3-none-any.whl", hash = "sha256:44cedb2b7c77a9de33a8b74b2b90e9f50d11fcf25d8270ea525ad71a25374ff7"},
     {file = "starlette-0.41.3.tar.gz", hash = "sha256:0e4ab3d16522a255be6b28260b938eae2482f98ce5cc934cb08dce8dc3ba5835"},
+=======
+    {file = "starlette-0.40.0-py3-none-any.whl", hash = "sha256:c494a22fae73805376ea6bf88439783ecfba9aac88a43911b48c653437e784c4"},
+    {file = "starlette-0.40.0.tar.gz", hash = "sha256:1a3139688fb298ce5e2d661d37046a66ad996ce94be4d4983be019a23a04ea35"},
+>>>>>>> b45b78a874939d6f73e6b441888d33927a5433c5
 ]
 
 [package.dependencies]
