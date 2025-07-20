@@ -194,7 +194,7 @@ class MCQQConfig(BaseModel):
 class Config(BaseModel):
     """配置项"""
 
-    mc_qq: MCQQConfig
+    mc_qq: Optional[MCQQConfig] = MCQQConfig()
 
 
 plugin_config: MCQQConfig = get_plugin_config(Config).mc_qq
